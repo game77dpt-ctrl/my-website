@@ -1,0 +1,4070 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سامانه آزمون DLX</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif; }
+  
+  body { background: #f5f6fa; min-height: 100vh; }
+  
+  /* ===== هدر ===== */
+  .header {
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 20px;
+  }
+  .logo-text { font-weight: bold; font-size: 18px; color: #333; }
+  .header-actions { display: flex; align-items: center; gap: 15px; }
+  .user-badge {
+    display: flex; align-items: center; gap: 8px;
+    background: #f0f4ff; padding: 6px 12px; border-radius: 20px;
+    font-size: 13px; color: #667eea; font-weight: 500;
+  }
+  .logout-btn {
+    background: #f44336; color: white; border: none;
+    padding: 8px 16px; border-radius: 8px; cursor: pointer;
+    font-size: 13px; font-weight: bold;
+  }
+  .logout-btn:hover { opacity: 0.9; }
+  
+  /* ===== نوار اعلان ===== */
+  .announcement {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white; text-align: center;
+    padding: 8px 16px; font-size: 13px;
+  }
+  
+  /* ===== لایه اصلی ===== */
+  .layout {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    display: flex;
+    gap: 20px;
+    min-height: calc(100vh - 120px);
+  }
+  
+  /* ===== سایدبار ===== */
+  .sidebar {
+    width: 220px;
+    background: white;
+    border-radius: 15px;
+    padding: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    height: fit-content;
+    position: sticky;
+    top: 80px;
+  }
+  .sidebar-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 15px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #555;
+    transition: all 0.2s;
+    margin-bottom: 5px;
+  }
+  .sidebar-item:hover { background: #f0f4ff; color: #667eea; }
+  .sidebar-item.active { background: #667eea; color: white; }
+  .sidebar-item .icon { font-size: 18px; }
+  
+  /* ===== محتوا ===== */
+  .content {
+    flex: 1;
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    min-height: 500px;
+  }
+  .content-title {
+    font-size: 20px; font-weight: bold; color: #333;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f4ff;
+  }
+  
+  /* ===== کارت آزمون ===== */
+  .test-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 15px;
+  }
+  .test-card {
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 18px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .test-card:hover { border-color: #667eea; box-shadow: 0 5px 15px rgba(102,126,234,0.1); }
+  .test-card h3 { font-size: 15px; color: #333; margin-bottom: 10px; }
+  .test-meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: #666; margin-bottom: 12px; }
+  .test-meta span { display: flex; align-items: center; gap: 4px; }
+  .test-status {
+    display: inline-block; font-size: 11px;
+    padding: 4px 10px; border-radius: 15px;
+    margin-bottom: 12px; font-weight: 500;
+  }
+  .status-active { background: #e8f5e9; color: #4CAF50; }
+  .status-waiting { background: #fff3cd; color: #856404; }
+  .status-finished { background: #ffebee; color: #f44336; }
+  .test-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .test-actions button {
+    flex: 1; padding: 8px; border: none; border-radius: 8px;
+    font-size: 12px; font-weight: bold; cursor: pointer;
+    transition: all 0.2s;
+    min-width: 80px;
+  }
+  .btn-enter { background: #667eea; color: white; }
+  .btn-enter:hover { opacity: 0.9; }
+  .btn-practice { background: #4CAF50; color: white; }
+  .btn-practice:hover { opacity: 0.9; }
+  .btn-edit { background: #ff9800; color: white; }
+  .btn-delete { background: #f44336; color: white; }
+  .btn-activate { background: #4CAF50; color: white; }
+  .btn-deactivate { background: #f44336; color: white; }
+  .btn-results { background: #764ba2; color: white; }
+  
+  /* ===== باکس شمارش معکوس ===== */
+  .test-countdown-box {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: bold;
+    direction: rtl;
+    box-shadow: 0 3px 8px rgba(102,126,234,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    line-height: 1.4;
+    width: 100%;
+  }
+  .test-countdown-box .cd-icon { font-size: 14px; flex-shrink: 0; }
+  .test-countdown-box .cd-text { flex: 1; }
+  .test-countdown-box .cd-label {
+    display: block; font-size: 10px; opacity: 0.85;
+    font-weight: normal; margin-bottom: 3px;
+  }
+  
+  .countdown-boxes { display: flex; justify-content: center; gap: 6px; direction: rtl; flex-wrap: wrap; }
+  .countdown-box {
+    display: flex; flex-direction: column; align-items: center;
+    background: white; border-radius: 8px; padding: 4px 8px;
+    min-width: 40px; box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  }
+  .countdown-box .cd-num { font-size: 1.1rem; font-weight: 800; color: #2c3e50; line-height: 1.2; direction: ltr; }
+  .countdown-box .cd-lbl { font-size: 0.6rem; color: #764ba2; font-weight: bold; margin-top: 1px; }
+  .countdown-sep { display: flex; align-items: center; font-size: 1.1rem; font-weight: 800; color: white; }
+  
+  .btn-not-started {
+    background: #e0e0e0; color: #666; border: none; padding: 10px;
+    border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer;
+    width: 100%; transition: all 0.2s;
+  }
+  .btn-not-started:hover { background: #d0d0d0; color: #333; }
+  
+  /* ===== کانال ===== */
+  .channel-message {
+    background: #f0f4ff; border-radius: 12px; padding: 15px;
+    margin-bottom: 10px; border-right: 4px solid #667eea; position: relative;
+  }
+  .channel-sender { font-size: 12px; color: #667eea; font-weight: bold; margin-bottom: 5px; }
+  .channel-text { color: #333; font-size: 14px; }
+  .channel-time { font-size: 11px; color: #999; margin-top: 5px; }
+  .channel-actions { position: absolute; top: 10px; left: 10px; display: flex; gap: 5px; }
+  .channel-action-btn {
+    background: white; border: 1px solid #e0e0e0; border-radius: 6px;
+    padding: 4px 8px; font-size: 11px; cursor: pointer; color: #555;
+  }
+  .channel-action-btn:hover { background: #f0f4ff; }
+  .channel-action-btn.delete:hover { background: #ffebee; color: #f44336; border-color: #f44336; }
+  .message-input { display: flex; gap: 10px; margin-bottom: 15px; }
+  .message-input input {
+    flex: 1; padding: 12px; border: 2px solid #e0e0e0;
+    border-radius: 8px; font-size: 14px;
+  }
+  .message-input input:focus { outline: none; border-color: #667eea; }
+  .message-input button {
+    padding: 12px 20px; background: #667eea; color: white;
+    border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold;
+  }
+  
+  /* ===== تنظیمات ===== */
+  .settings-card {
+    background: #f8f9fa; border-radius: 12px; padding: 20px; border: 1px solid #e0e0e0;
+  }
+  .settings-card h3 { font-size: 16px; color: #333; margin-bottom: 15px; }
+  .settings-card p { font-size: 14px; color: #666; margin-bottom: 10px; }
+  .settings-card input {
+    width: 100%; padding: 12px; border: 2px solid #e0e0e0;
+    border-radius: 8px; font-size: 14px; margin-bottom: 10px;
+  }
+  .settings-card input:focus { outline: none; border-color: #667eea; }
+  .settings-card button {
+    width: 100%; padding: 12px; background: #667eea; color: white;
+    border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer;
+  }
+  
+  /* ===== پروفایل دانش‌آموز ===== */
+  .profile-card {
+    background: #f8f9fa; border-radius: 12px; padding: 20px; border: 1px solid #e0e0e0;
+  }
+  .profile-card h3 { font-size: 16px; color: #333; margin-bottom: 15px; }
+  .profile-card p { font-size: 14px; color: #666; margin-bottom: 10px; }
+  .profile-card input {
+    width: 100%; padding: 12px; border: 2px solid #e0e0e0;
+    border-radius: 8px; font-size: 14px; margin-bottom: 10px;
+  }
+  .profile-card input:focus { outline: none; border-color: #667eea; }
+  .profile-card button {
+    width: 100%; padding: 12px; background: #667eea; color: white;
+    border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer;
+  }
+  
+  /* ===== کاربران مجاز (مدیر) ===== */
+  .users-card {
+    background: #f8f9fa; border-radius: 12px; padding: 20px; border: 1px solid #e0e0e0;
+  }
+  .users-card h3 { font-size: 16px; color: #333; margin-bottom: 15px; }
+  .add-user-row { display: flex; gap: 10px; margin-bottom: 15px; }
+  .add-user-row input {
+    flex: 1; padding: 12px; border: 2px solid #e0e0e0;
+    border-radius: 8px; font-size: 14px;
+  }
+  .add-user-row input:focus { outline: none; border-color: #667eea; }
+  .add-user-row button {
+    padding: 12px 20px; background: #4CAF50; color: white;
+    border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold;
+  }
+  .user-list-item {
+    display: flex; align-items: center; gap: 12px; padding: 12px;
+    background: white; border: 1px solid #e0e0e0; border-radius: 10px; margin-bottom: 8px;
+  }
+  .user-list-phone { font-size: 14px; font-weight: bold; color: #333; direction: ltr; min-width: 120px; }
+  .user-list-info { flex: 1; font-size: 13px; color: #666; }
+  .user-list-info .username { font-weight: bold; color: #333; }
+  .user-list-delete {
+    background: #f44336; color: white; border: none; border-radius: 8px;
+    padding: 6px 12px; cursor: pointer; font-size: 12px;
+  }
+  .user-list-delete:hover { opacity: 0.9; }
+  .user-list-empty { text-align: center; padding: 20px; color: #999; }
+  
+  /* ===== کانال‌ها و گروه‌ها (مدیر) ===== */
+  .channels-card {
+    background: #f8f9fa; border-radius: 12px; padding: 20px; border: 1px solid #e0e0e0;
+  }
+  .channels-card h3 { font-size: 16px; color: #333; margin-bottom: 15px; }
+  .add-channel-row { display: flex; gap: 10px; margin-bottom: 15px; }
+  .add-channel-row input {
+    flex: 1; padding: 12px; border: 2px solid #e0e0e0;
+    border-radius: 8px; font-size: 14px;
+  }
+  .add-channel-row input:focus { outline: none; border-color: #667eea; }
+  .add-channel-row button {
+    padding: 12px 20px; background: #4CAF50; color: white;
+    border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold;
+  }
+  .channel-list-item {
+    display: flex; align-items: center; gap: 12px; padding: 12px;
+    background: white; border: 1px solid #e0e0e0; border-radius: 10px;
+    margin-bottom: 8px; cursor: pointer; transition: all 0.2s;
+  }
+  .channel-list-item:hover { border-color: #667eea; box-shadow: 0 3px 10px rgba(102,126,234,0.1); }
+  .channel-list-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 18px; flex-shrink: 0;
+  }
+  .channel-list-icon.group { background: linear-gradient(135deg, #4CAF50, #2e7d32); }
+  .channel-list-info { flex: 1; }
+  .channel-list-name { font-size: 14px; font-weight: bold; color: #333; }
+  .channel-list-id { font-size: 12px; color: #667eea; direction: ltr; text-align: left; }
+  .channel-list-count { font-size: 12px; color: #999; }
+  .channel-list-delete {
+    background: #f44336; color: white; border: none; border-radius: 8px;
+    padding: 6px 12px; cursor: pointer; font-size: 12px;
+  }
+  .channel-list-delete:hover { opacity: 0.9; }
+  .channel-list-empty { text-align: center; padding: 20px; color: #999; }
+  
+  /* ===== پنل مدیریت کانال/گروه (جزئیات) ===== */
+  .channel-detail-panel {
+    background: white; border: 2px solid #667eea; border-radius: 12px;
+    padding: 20px; margin-bottom: 15px;
+  }
+  .channel-detail-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid #e0e0e0;
+  }
+  .channel-detail-header h4 { font-size: 16px; color: #333; }
+  .channel-detail-close {
+    background: #f44336; color: white; border: none; border-radius: 50%;
+    width: 28px; height: 28px; cursor: pointer; font-size: 13px;
+  }
+  .channel-detail-stats { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+  .channel-detail-stat {
+    flex: 1; min-width: 120px; background: #f8f9fa;
+    border-radius: 10px; padding: 12px; text-align: center;
+  }
+  .channel-detail-stat .num { font-size: 22px; font-weight: bold; color: #667eea; }
+  .channel-detail-stat .lbl { font-size: 12px; color: #666; margin-top: 4px; }
+  .channel-detail-section { margin-bottom: 15px; }
+  .channel-detail-section h5 { font-size: 14px; color: #333; margin-bottom: 10px; }
+  .channel-detail-edit-row { display: flex; gap: 8px; margin-bottom: 8px; }
+  .channel-detail-edit-row input {
+    flex: 1; padding: 10px; border: 2px solid #e0e0e0;
+    border-radius: 8px; font-size: 13px;
+  }
+  .channel-detail-edit-row input:focus { outline: none; border-color: #667eea; }
+  .channel-detail-edit-row button {
+    padding: 10px 16px; background: #667eea; color: white;
+    border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold;
+  }
+  .channel-detail-edit-row button.green { background: #4CAF50; }
+  .channel-detail-edit-row button.red { background: #f44336; }
+  .channel-detail-msg { font-size: 12px; margin-top: 5px; }
+  .channel-detail-member {
+    display: flex; align-items: center; gap: 10px; padding: 10px;
+    background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 6px;
+  }
+  .channel-detail-member .phone { font-size: 13px; font-weight: bold; color: #333; direction: ltr; min-width: 110px; }
+  .channel-detail-member .info { flex: 1; font-size: 12px; color: #666; }
+  .channel-detail-member .remove-btn {
+    background: #f44336; color: white; border: none; border-radius: 6px;
+    padding: 5px 10px; cursor: pointer; font-size: 11px;
+  }
+  .channel-detail-empty { text-align: center; padding: 15px; color: #999; font-size: 13px; }
+  
+  /* ===== جستوجوی کانال (دانش‌آموز) ===== */
+  .search-channel-card {
+    background: #f8f9fa; border-radius: 12px; padding: 20px; border: 1px solid #e0e0e0;
+  }
+  .search-channel-card h3 { font-size: 16px; color: #333; margin-bottom: 15px; }
+  .search-channel-row { display: flex; gap: 10px; margin-bottom: 15px; }
+  .search-channel-row input {
+    flex: 1; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px;
+    font-size: 14px; direction: ltr; text-align: left;
+  }
+  .search-channel-row input:focus { outline: none; border-color: #667eea; }
+  .search-channel-row button {
+    padding: 12px 20px; background: #667eea; color: white;
+    border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold;
+  }
+  .search-result {
+    background: white; border: 1px solid #e0e0e0; border-radius: 10px;
+    padding: 15px; margin-bottom: 10px;
+  }
+  .search-result-found { border-right: 4px solid #4CAF50; }
+  .search-result-notfound { border-right: 4px solid #f44336; }
+  .search-result-name { font-size: 14px; font-weight: bold; color: #333; margin-bottom: 5px; }
+  .search-result-id { font-size: 12px; color: #667eea; direction: ltr; text-align: left; margin-bottom: 10px; }
+  .btn-join {
+    background: #4CAF50; color: white; border: none; border-radius: 8px;
+    padding: 8px 16px; cursor: pointer; font-size: 13px; font-weight: bold;
+  }
+  .btn-joined {
+    background: #e0e0e0; color: #666; border: none; border-radius: 8px;
+    padding: 8px 16px; cursor: default; font-size: 13px; font-weight: bold;
+  }
+  .my-channels-list { margin-top: 20px; }
+  .my-channel-item {
+    display: flex; align-items: center; gap: 12px; padding: 12px;
+    background: white; border: 1px solid #e0e0e0; border-radius: 10px; margin-bottom: 8px;
+  }
+  .my-channel-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 16px; flex-shrink: 0;
+  }
+  .my-channel-icon.group { background: linear-gradient(135deg, #4CAF50, #2e7d32); }
+  .my-channel-info { flex: 1; }
+  .my-channel-name { font-size: 14px; font-weight: bold; color: #333; }
+  .my-channel-id { font-size: 11px; color: #667eea; direction: ltr; text-align: left; }
+  .btn-leave {
+    background: #f44336; color: white; border: none; border-radius: 8px;
+    padding: 6px 12px; cursor: pointer; font-size: 12px;
+  }
+  .btn-leave:hover { opacity: 0.9; }
+  
+  /* ===== دکمه اصلی ===== */
+  .btn-primary {
+    background: #667eea; color: white; border: none; padding: 12px 24px;
+    border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary:hover { opacity: 0.9; transform: translateY(-2px); }
+  
+  /* ===== مودال ===== */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center; z-index: 1000;
+  }
+  .modal-box {
+    background: white; border-radius: 15px; padding: 25px; width: 90%;
+    max-width: 600px; max-height: 85vh; overflow-y: auto;
+  }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .modal-header h2 { font-size: 18px; color: #333; }
+  .modal-close {
+    background: #f44336; color: white; border: none; width: 30px; height: 30px;
+    border-radius: 50%; cursor: pointer; font-size: 14px;
+  }
+  .form-group { margin-bottom: 15px; }
+  .form-group label { display: block; font-size: 13px; color: #666; margin-bottom: 5px; }
+  .form-group input, .form-group select {
+    width: 100%; padding: 10px; border: 2px solid #e0e0e0;
+    border-radius: 8px; font-size: 14px;
+  }
+  .form-group input:focus, .form-group select:focus { outline: none; border-color: #667eea; }
+  
+  .hidden { display: none !important; }
+  
+  /* ===== صفحه ورود ===== */
+  .login-page {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+  .login-box {
+    background: white; border-radius: 20px; padding: 40px; width: 100%;
+    max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .login-box h1 { text-align: center; color: #333; margin-bottom: 25px; font-size: 22px; }
+  .role-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
+  .role-btn {
+    flex: 1; padding: 12px; border: none; border-radius: 10px;
+    font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s;
+  }
+  .role-btn.admin { background: #667eea; color: white; }
+  .role-btn.student { background: #f093fb; color: white; }
+  .role-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+  .login-input {
+    width: 100%; padding: 12px; border: 2px solid #e0e0e0;
+    border-radius: 8px; font-size: 14px; margin-bottom: 15px;
+  }
+  .login-input:focus { outline: none; border-color: #667eea; }
+  .login-submit {
+    width: 100%; padding: 14px; background: #667eea; color: white;
+    border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer;
+  }
+  .login-error { color: #f44336; font-size: 13px; margin-top: 10px; text-align: center; }
+  
+  /* ===== صفحه آزمون ===== */
+  .exam-page { max-width: 800px; margin: 20px auto; padding: 0 20px; }
+  .exam-header {
+    background: white; border-radius: 15px; padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 15px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .exam-header h2 { font-size: 18px; color: #333; }
+  .exam-timer {
+    background: #f0f4ff; color: #667eea; padding: 8px 16px;
+    border-radius: 20px; font-weight: bold; font-size: 16px;
+  }
+  .exam-timer.warning { background: #ffebee; color: #f44336; }
+  .exam-body {
+    background: white; border-radius: 15px; padding: 25px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  }
+  .question-nav { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 20px; }
+  .q-nav-btn {
+    width: 35px; height: 35px; border-radius: 50%; border: 2px solid #e0e0e0;
+    background: white; cursor: pointer; font-size: 13px;
+    display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+  }
+  .q-nav-btn.active { background: #667eea; color: white; border-color: #667eea; }
+  .q-nav-btn.answered { background: #4CAF50; color: white; border-color: #4CAF50; }
+  .question-text {
+    background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px;
+    border-right: 4px solid #667eea; font-size: 15px; color: #333;
+  }
+  .option-list { margin-bottom: 20px; }
+  .option-item {
+    display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px;
+    margin: 8px 0; border: 2px solid #e0e0e0; border-radius: 10px;
+    background: white; cursor: pointer; transition: all 0.2s; text-align: right;
+  }
+  .option-item:hover { border-color: #667eea; background: #f0f4ff; }
+  .option-item.selected { border-color: #667eea; background: #e8edff; }
+  .option-letter {
+    width: 32px; height: 32px; border-radius: 50%; background: #667eea; color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 13px; flex-shrink: 0;
+  }
+  .option-item.selected .option-letter { background: #4CAF50; }
+  .option-text { flex: 1; font-size: 14px; color: #333; }
+  .exam-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .exam-actions button {
+    flex: 1; padding: 12px; border: none; border-radius: 10px;
+    font-size: 14px; font-weight: bold; cursor: pointer;
+  }
+  .btn-next { background: #667eea; color: white; }
+  .btn-prev { background: #e0e0e0; color: #333; }
+  .btn-save-exit { background: #ff9800; color: white; }
+  
+  /* ===== نتیجه ===== */
+  .result-box { text-align: center; padding: 25px; border-radius: 15px; margin-bottom: 20px; }
+  .result-pass { background: #e8f5e9; border: 2px solid #4CAF50; }
+  .result-fail { background: #ffebee; border: 2px solid #f44336; }
+  .result-box h3 { font-size: 24px; margin-bottom: 10px; }
+  .result-box p { font-size: 16px; color: #666; }
+  .result-stats { display: flex; gap: 15px; justify-content: center; margin-bottom: 20px; }
+  .stat-box { text-align: center; padding: 15px; background: #f8f9fa; border-radius: 12px; flex: 1; }
+  .stat-box .number { font-size: 28px; font-weight: bold; }
+  .stat-box .label { font-size: 12px; color: #666; margin-top: 5px; }
+  .result-detail { margin-top: 15px; }
+  .result-item { background: #f8f9fa; padding: 10px; border-radius: 8px; margin-bottom: 8px; }
+  .result-item .q-text { font-size: 13px; color: #333; margin-bottom: 5px; }
+  .result-item .q-answer { font-size: 12px; }
+  .correct-text { color: #4CAF50; font-weight: bold; }
+  .wrong-text { color: #f44336; font-weight: bold; }
+  
+  /* ===== نفرات برتر ===== */
+  .leaderboard { margin-top: 20px; background: #f8f9fa; border-radius: 12px; padding: 15px; border: 1px solid #e0e0e0; }
+  .leaderboard h3 { font-size: 16px; color: #333; margin-bottom: 12px; text-align: center; }
+  .leaderboard-row {
+    display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+    border-radius: 8px; margin-bottom: 6px; background: white; border: 1px solid #e0e0e0;
+  }
+  .leaderboard-row:first-child { background: linear-gradient(135deg, #ffd700, #ffec80); border-color: #ffd700; }
+  .leaderboard-row:nth-child(2) { background: linear-gradient(135deg, #c0c0c0, #e8e8e8); border-color: #c0c0c0; }
+  .leaderboard-row:nth-child(3) { background: linear-gradient(135deg, #cd7f32, #e8b98a); border-color: #cd7f32; }
+  .leaderboard-rank {
+    width: 32px; height: 32px; border-radius: 50%; background: #667eea; color: white;
+    display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; flex-shrink: 0;
+  }
+  .leaderboard-row:first-child .leaderboard-rank { background: #ffd700; color: #333; }
+  .leaderboard-row:nth-child(2) .leaderboard-rank { background: #c0c0c0; color: #333; }
+  .leaderboard-row:nth-child(3) .leaderboard-rank { background: #cd7f32; color: white; }
+  .leaderboard-name { flex: 1; font-size: 14px; font-weight: bold; color: #333; }
+  .leaderboard-id { font-size: 11px; color: #999; }
+  .leaderboard-percent { font-size: 14px; font-weight: bold; color: #667eea; direction: ltr; }
+  
+  /* ===== PDF ===== */
+  .pdf-viewer { width: 100%; height: 700px; border: 2px solid #e0e0e0; border-radius: 10px; margin-bottom: 15px; }
+  
+  /* ===== پاسخنامه (کلید سوالات) ===== */
+  .answer-sheet { margin-top: 10px; }
+  .answer-sheet-row {
+    display: flex; align-items: center; gap: 15px; padding: 12px;
+    border: 1px solid #e0e0e0; border-radius: 10px; margin-bottom: 8px; background: #f8f9fa;
+  }
+  .answer-sheet-row .q-number { font-weight: bold; font-size: 14px; color: #333; min-width: 60px; }
+  .answer-sheet-row .options { display: flex; gap: 10px; flex: 1; }
+  .circle-option {
+    width: 36px; height: 36px; border-radius: 50%; border: 2px solid #667eea;
+    background: white; color: #667eea; font-size: 14px; font-weight: bold;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;
+  }
+  .circle-option:hover { background: #f0f4ff; }
+  .circle-option.selected { background: #4CAF50; border-color: #4CAF50; color: white; }
+  
+  /* ===== پاسخنامه یکجای دانش‌آموز ===== */
+  .student-answer-sheet { display: grid; gap: 12px; }
+  .student-answer-row {
+    display: flex; align-items: center; gap: 12px; padding: 12px;
+    border: 1px solid #e0e0e0; border-radius: 12px; background: #f8f9fa;
+  }
+  .student-answer-row .q-number { min-width: 72px; font-weight: bold; color: #333; }
+  .student-answer-options { display: flex; gap: 8px; flex-wrap: wrap; }
+  .student-answer-option {
+    width: 42px; height: 42px; border-radius: 50%; border: 2px solid #667eea;
+    background: white; color: #667eea; font-weight: bold; cursor: pointer; transition: .2s;
+  }
+  .student-answer-option:hover { background: #f0f4ff; }
+  .student-answer-option.selected { background: #4CAF50; border-color: #4CAF50; color: white; }
+  .answer-sheet-actions { display: flex; gap: 10px; margin-top: 18px; }
+  .answer-sheet-actions button { flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+  .btn-sheet-back { background: #e0e0e0; color: #333; }
+  .btn-sheet-submit { background: #4CAF50; color: white; }
+  .retry-btn { background: #ff9800; color: white; border: none; padding: 12px 22px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+  .retry-btn:hover { opacity: .9; }
+  .attempt-badge { display: inline-block; padding: 6px 12px; border-radius: 15px; background: #f0f4ff; color: #667eea; font-size: 12px; margin-top: 8px; }
+  .practice-badge { display: inline-block; padding: 6px 12px; border-radius: 15px; background: #e8f5e9; color: #4CAF50; font-size: 12px; margin-top: 8px; }
+  
+  /* ===== صفحه اطلاعات آزمون (شروع نشده) ===== */
+  .exam-info-page { max-width: 600px; margin: 20px auto; padding: 0 20px; }
+  .exam-info-card { background: white; border-radius: 15px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; }
+  .exam-info-icon { font-size: 56px; margin-bottom: 15px; }
+  .exam-info-card h2 { font-size: 20px; color: #333; margin-bottom: 20px; }
+  .exam-info-row {
+    display: flex; align-items: center; justify-content: space-between; padding: 12px 15px;
+    background: #f8f9fa; border-radius: 10px; margin-bottom: 10px; border-right: 4px solid #667eea;
+  }
+  .exam-info-row .label { font-size: 14px; color: #666; display: flex; align-items: center; gap: 8px; }
+  .exam-info-row .value { font-size: 14px; font-weight: bold; color: #333; }
+  .exam-info-countdown { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 12px; padding: 20px; margin: 20px 0; font-size: 16px; font-weight: bold; box-shadow: 0 4px 12px rgba(102,126,234,0.25); }
+  .exam-info-countdown .countdown-box { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); }
+  .exam-info-countdown .countdown-box .cd-num { color: white; }
+  .exam-info-countdown .countdown-box .cd-lbl { color: rgba(255,255,255,0.85); }
+  .exam-info-countdown .countdown-sep { color: white; }
+  .exam-info-back { width: 100%; padding: 12px; background: #e0e0e0; color: #333; border: none; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; }
+  .exam-info-back:hover { background: #d0d0d0; }
+  
+  /* ===== صفحه انتظار پایان مدت آزمون ===== */
+  .exam-time-expired-page { max-width: 600px; margin: 20px auto; padding: 0 20px; }
+  .exam-time-expired-card { background: white; border-radius: 15px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; }
+  .exam-time-expired-icon { font-size: 56px; margin-bottom: 15px; }
+  .exam-time-expired-card h2 { font-size: 20px; color: #333; margin-bottom: 10px; }
+  .exam-time-expired-card p { font-size: 14px; color: #777; line-height: 2; margin-bottom: 20px; }
+  .exam-time-expired-countdown { background: linear-gradient(135deg, #ff9800, #f44336); color: white; border-radius: 12px; padding: 20px; margin: 20px 0; font-size: 16px; font-weight: bold; box-shadow: 0 4px 12px rgba(244,67,54,0.25); }
+  .exam-time-expired-countdown .countdown-box { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); }
+  .exam-time-expired-countdown .countdown-box .cd-num { color: white; }
+  .exam-time-expired-countdown .countdown-box .cd-lbl { color: rgba(255,255,255,0.85); }
+  .exam-time-expired-countdown .countdown-sep { color: white; }
+  .exam-time-expired-back { width: 100%; padding: 12px; background: #e0e0e0; color: #333; border: none; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; }
+  .exam-time-expired-back:hover { background: #d0d0d0; }
+  
+  /* ===== پاسخ‌گو ===== */
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; padding: 10px; }
+    .sidebar { width: 100%; position: static; display: flex; overflow-x: auto; }
+    .sidebar-item { white-space: nowrap; }
+    .test-grid { grid-template-columns: 1fr; }
+    .header-inner { padding: 10px 15px; }
+    .exam-header { flex-direction: column; gap: 10px; }
+    .answer-sheet-row { flex-direction: column; align-items: flex-start; }
+    .countdown-box { min-width: 36px; padding: 3px 6px; }
+    .countdown-box .cd-num { font-size: 1rem; }
+  }
+  
+  @media (max-width: 768px) {
+    html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
+    body { font-size: 14px; }
+    .header-inner { padding: 10px 12px; gap: 10px; flex-wrap: wrap; }
+    .logo { min-width: 0; }
+    .logo-text { font-size: 16px; }
+    .header-actions { gap: 8px; margin-right: auto; }
+    .user-badge { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .logout-btn { padding: 8px 11px; font-size: 12px; }
+    .announcement { margin: 0 10px; font-size: 12px; text-align: center; }
+    .layout { display: flex; flex-direction: column; width: 100%; max-width: 100%; margin: 0; padding: 10px; gap: 10px; }
+    .sidebar { width: 100%; max-width: 100%; padding: 8px; display: flex; flex-direction: row; gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+    .sidebar-item { flex: 0 0 auto; white-space: nowrap; padding: 10px 12px; font-size: 13px; }
+    .content { width: 100%; min-width: 0; padding: 15px; border-radius: 12px; }
+    .content-title { font-size: 18px; }
+    .test-grid { grid-template-columns: 1fr; gap: 12px; }
+    .test-card { padding: 15px; min-width: 0; }
+    .test-actions { flex-direction: column; }
+    .test-actions button { width: 100%; min-width: 0; }
+    .modal-overlay { padding: 10px; }
+    .modal-box { width: 100%; max-width: 100%; max-height: 92vh; overflow-y: auto; padding: 16px; border-radius: 14px; }
+    .modal-header { gap: 10px; }
+    .modal-header h2 { font-size: 16px; }
+    .role-buttons { flex-direction: column; }
+    .login-page { padding: 15px; }
+    .login-box { padding: 25px 18px; max-width: 100%; }
+    .exam-page { width: 100%; max-width: 100%; margin: 10px auto; padding: 0 10px; }
+    .exam-header { padding: 14px; border-radius: 12px; flex-direction: column; align-items: stretch; gap: 10px; }
+    .exam-header h2 { font-size: 17px; text-align: center; }
+    .exam-timer { text-align: center; }
+    .exam-body { padding: 14px; border-radius: 12px; min-width: 0; }
+    .question-nav { gap: 5px; }
+    .q-nav-btn { width: 32px; height: 32px; font-size: 12px; }
+    .question-text { padding: 12px; font-size: 14px; overflow-wrap: anywhere; }
+    .option-item { padding: 11px; gap: 8px; }
+    .option-text { font-size: 13px; overflow-wrap: anywhere; }
+    .exam-actions { flex-direction: column; }
+    .exam-actions button { width: 100%; }
+    .result-box { padding: 18px 12px; }
+    .result-box h3 { font-size: 20px; }
+    .result-box p { font-size: 14px; }
+    .result-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .stat-box { padding: 12px 8px; min-width: 0; }
+    .stat-box .number { font-size: 24px; overflow-wrap: anywhere; }
+    .stat-box .label { font-size: 11px; }
+    .leaderboard { padding: 10px; overflow: hidden; }
+    .leaderboard-row { gap: 8px; padding: 9px; min-width: 0; }
+    .leaderboard-name { min-width: 0; overflow-wrap: anywhere; }
+    .leaderboard-percent { font-size: 12px; flex-shrink: 0; }
+    .leaderboard-rank { width: 30px; height: 30px; }
+    .result-item { overflow: hidden; }
+    .result-item .q-text { overflow-wrap: anywhere; line-height: 1.8; }
+    .pdf-viewer { height: 60vh; min-height: 400px; }
+    .answer-sheet-row { flex-direction: column; align-items: stretch; gap: 10px; }
+    .answer-sheet-row .q-number { min-width: 0; }
+    .answer-sheet-row .options { flex-wrap: wrap; justify-content: center; }
+    .circle-option { width: 34px; height: 34px; }
+    .student-answer-sheet { width: 100%; min-width: 0; }
+    .user-list-item { flex-wrap: wrap; gap: 8px; }
+    .add-user-row { flex-direction: column; }
+    .add-user-row input, .add-user-row button { width: 100%; }
+    table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    img, video, canvas, iframe { max-width: 100%; }
+    input, select, textarea, button { max-width: 100%; }
+  }
+  
+  @media (max-width: 480px) {
+    .header-inner { padding: 9px 10px; }
+    .logo-icon { width: 34px; height: 34px; }
+    .logo-text { font-size: 14px; }
+    .header-actions { width: 100%; justify-content: flex-end; }
+    .user-badge { max-width: 45%; }
+    .layout { padding: 7px; }
+    .content { padding: 12px; }
+    .exam-page { padding: 0 6px; }
+    .exam-body { padding: 11px; }
+    .result-stats { gap: 7px; }
+    .stat-box .number { font-size: 21px; }
+    .result-box h3 { font-size: 18px; }
+    .result-box p { font-size: 13px; }
+    .leaderboard-row { flex-wrap: wrap; }
+    .leaderboard-percent { margin-right: auto; }
+    .pdf-viewer { height: 55vh; min-height: 320px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== صفحه ورود ===== -->
+<div id="loginScreen" class="login-page">
+  <div class="login-box">
+    <h1>📚 سامانه آزمون DLX</h1>
+    <div class="role-buttons">
+      <button class="role-btn admin" onclick="showLoginForm('admin')">👨‍🏫 مدیر</button>
+      <button class="role-btn student" onclick="showLoginForm('student')">🎓 دانش‌آموز</button>
+    </div>
+    <div id="loginForm" class="hidden">
+      <input type="text" id="loginPassword" class="login-input" placeholder="رمز عبور را وارد کنید">
+      <button class="login-submit" onclick="handleLogin()">ورود</button>
+      <div id="loginError" class="login-error"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== صفحه اصلی ===== -->
+<div id="mainScreen" class="hidden">
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-icon">📚</div>
+        <span class="logo-text">DLX آزمون</span>
+      </div>
+      <div class="header-actions">
+        <div class="user-badge" id="userBadge">👤 کاربر</div>
+        <button class="logout-btn" onclick="logout()">خروج</button>
+      </div>
+    </div>
+  </header>
+  
+  <div class="announcement">📢 به سامانه آزمون آنلاین خوش آمدید</div>
+  
+  <div class="layout">
+    <nav class="sidebar" id="sidebar">
+      <!-- ===== کانال (فقط کانال‌ها) ===== -->
+      <div class="sidebar-item active" data-tab="channel" onclick="switchTab('channel')">
+        <span class="icon">📢</span> کانال
+      </div>
+      <!-- ===== گروه (فقط گروه‌ها) ===== -->
+      <div class="sidebar-item" data-tab="group" onclick="switchTab('group')">
+        <span class="icon">👥</span> گروه
+      </div>
+      <!-- ===== جستوجوی کانال (دانش‌آموز) ===== -->
+      <div class="sidebar-item" data-tab="search" onclick="switchTab('search')">
+        <span class="icon">🔍</span> جستوجوی کانال
+      </div>
+      <div class="sidebar-item" data-tab="tests" onclick="switchTab('tests')">
+        <span class="icon">📝</span> آزمون‌ها
+      </div>
+      <!-- ===== کانال‌ها و گروه‌ها (مدیر) ===== -->
+      <div class="sidebar-item" data-tab="channels" onclick="switchTab('channels')">
+        <span class="icon">📡</span> کانال‌ها و گروه‌ها
+      </div>
+      <div class="sidebar-item" data-tab="profile" onclick="switchTab('profile')">
+        <span class="icon">👤</span> پروفایل من
+      </div>
+      <div class="sidebar-item" data-tab="users" onclick="switchTab('users')">
+        <span class="icon">👥</span> کاربران مجاز
+      </div>
+      <div class="sidebar-item" data-tab="settings" onclick="switchTab('settings')">
+        <span class="icon">⚙️</span> تنظیمات
+      </div>
+    </nav>
+    
+    <main class="content">
+      <!-- ===== تب کانال (فقط کانال‌ها) ===== -->
+      <div id="tab-channel">
+        <div class="content-title">📢 کانال اطلاع‌رسانی</div>
+        <div id="channelSelector" class="hidden" style="margin-bottom: 15px;"></div>
+        <div id="channelInputArea" class="message-input hidden">
+          <input type="text" id="adminMessageInput" placeholder="پیام خود را بنویسید..." onkeydown="if(event.key==='Enter'){event.preventDefault();sendChannelMessage();}">
+          <button onclick="sendChannelMessage()">ارسال</button>
+        </div>
+        <div id="channelMessages"></div>
+      </div>
+      
+      <!-- ===== تب گروه (فقط گروه‌ها) ===== -->
+      <div id="tab-group" class="hidden">
+        <div class="content-title">👥 گروه‌ها</div>
+        <div id="groupSelector" class="hidden" style="margin-bottom: 15px;"></div>
+        <div id="groupInputArea" class="message-input hidden">
+          <input type="text" id="groupMessageInput" placeholder="پیام خود را در گروه بنویسید..." onkeydown="if(event.key==='Enter'){event.preventDefault();sendGroupMessage();}">
+          <button onclick="sendGroupMessage()">ارسال</button>
+        </div>
+        <div id="groupMessages"></div>
+      </div>
+      
+      <!-- ===== تب جستوجوی کانال (دانش‌آموز) ===== -->
+      <div id="tab-search" class="hidden">
+        <div class="content-title">🔍 جستوجوی کانال</div>
+        <div class="search-channel-card">
+          <h3>🔎 جستوجو با آیدی کانال</h3>
+          <p style="font-size:13px;color:#666;margin-bottom:15px;">آیدی کانال/گروه عمومی یا کد دعوت گروه خصوصی را وارد کنید.</p>
+          <div class="search-channel-row">
+            <input type="text" id="searchChannelInput" placeholder="@channel_id یا group_id یا کد دعوت" onkeydown="if(event.key==='Enter'){event.preventDefault();searchChannel();}">
+            <button onclick="searchChannel()">🔍 جستوجو</button>
+          </div>
+          <div id="searchResult"></div>
+          <h3 style="margin-top:20px;">📋 کانال‌های من</h3>
+          <div id="myChannelsList" class="my-channels-list"></div>
+        </div>
+      </div>
+      
+      <!-- ===== تب آزمون‌ها ===== -->
+      <div id="tab-tests" class="hidden">
+        <div class="content-title">📝 آزمون‌ها</div>
+        <div id="adminTestActions" class="hidden" style="margin-bottom: 15px;">
+          <button class="btn-primary" onclick="openCreateTestModal()">➕ ایجاد آزمون جدید</button>
+        </div>
+        <div id="testsList" class="test-grid"></div>
+      </div>
+      
+      <!-- ===== تب کانال‌ها و گروه‌ها (مدیر) ===== -->
+      <div id="tab-channels" class="hidden">
+        <div class="content-title">📡 کانال‌ها و گروه‌ها</div>
+        <div class="channels-card">
+          <h3>➕ ساخت کانال/گروه جدید</h3>
+          <div class="add-channel-row">
+            <input type="text" id="newChannelName" placeholder="نام کانال/گروه (مثلاً: کانال ریاضی)">
+          </div>
+          <div class="add-channel-row">
+            <input type="text" id="newChannelId" placeholder="آیدی کانال (مثلاً: @math_channel) یا گروه (مثلاً: math_group)" style="direction:ltr;text-align:left;">
+          </div>
+          <div class="add-channel-row">
+            <select id="newChannelPrivacy" style="flex:1;padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px;">
+              <option value="public">🌍 عمومی</option>
+              <option value="private">🔒 خصوصی</option>
+            </select>
+          </div>
+          <button class="btn-primary" style="width:100%;background:#4CAF50;" onclick="addChannel()">➕ ساخت کانال</button>
+          <div id="addChannelMsg"></div>
+          <h3 style="margin-top:20px;">📋 لیست کانال‌ها و گروه‌ها</h3>
+          <div id="channelsList"></div>
+        </div>
+      </div>
+      
+      <!-- ===== تب پروفایل دانش‌آموز ===== -->
+      <div id="tab-profile" class="hidden">
+        <div class="content-title">👤 پروفایل من</div>
+        <div class="profile-card">
+          <h3>📝 اطلاعات شما</h3>
+          <p>این اطلاعات در نتایج آزمون‌ها و جدول نفرات برتر نمایش داده می‌شود.</p>
+          <input type="text" id="profileUsername" placeholder="نام کاربری (مثلاً: علی محمدی)">
+          <input type="text" id="profileId" placeholder="آیدی (مثلاً: ali_123)">
+          <button onclick="saveProfile()">💾 ذخیره پروفایل</button>
+          <div id="profileMsg"></div>
+        </div>
+      </div>
+      
+      <!-- ===== تب کاربران مجاز (مدیر) ===== -->
+      <div id="tab-users" class="hidden">
+        <div class="content-title">👥 کاربران مجاز</div>
+        <div class="users-card">
+          <h3>➕ افزودن شماره جدید</h3>
+          <div class="add-user-row">
+            <input type="text" id="newUserPhone" placeholder="شماره موبایل (مثلاً: 09123456789)">
+            <button onclick="addAllowedUser()">افزودن</button>
+          </div>
+          <div id="addUserMsg"></div>
+          <h3 style="margin-top:20px;">📋 لیست کاربران تاییدشده</h3>
+          <div id="allowedUsersList"></div>
+        </div>
+      </div>
+      
+      <!-- ===== تب تنظیمات ===== -->
+      <div id="tab-settings" class="hidden">
+        <div class="content-title">⚙️ تنظیمات</div>
+        <div class="settings-card">
+          <h3>🔑 رمز دانش‌آموزان</h3>
+          <p>رمز فعلی: <strong id="currentStudentPassword"></strong></p>
+          <input type="text" id="newStudentPassword" placeholder="رمز جدید را وارد کنید">
+          <button onclick="changeStudentPassword()">تغییر رمز</button>
+          <div id="passwordChangeMsg"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ===== صفحه آزمون ===== -->
+<div id="examScreen" class="hidden">
+  <div class="exam-page">
+    <div class="exam-header">
+      <button class="logout-btn" onclick="exitExam()">← بازگشت</button>
+      <h2 id="examTitle"></h2>
+      <div class="exam-timer" id="examTimer">⏱️ 00:00</div>
+    </div>
+    <div class="exam-body" id="examBody"></div>
+  </div>
+</div>
+
+<!-- ===== صفحه اطلاعات آزمون (شروع نشده) ===== -->
+<div id="examInfoScreen" class="hidden">
+  <div class="exam-info-page">
+    <div class="exam-info-card">
+      <div class="exam-info-icon">📋</div>
+      <h2 id="examInfoTitle">اطلاعات آزمون</h2>
+      <div id="examInfoRows"></div>
+      <div id="examInfoCountdown" class="exam-info-countdown"></div>
+      <button class="exam-info-back" onclick="exitExamInfo()">← بازگشت به آزمون‌ها</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== صفحه انتظار پایان مدت آزمون ===== -->
+<div id="examTimeExpiredScreen" class="hidden">
+  <div class="exam-time-expired-page">
+    <div class="exam-time-expired-card">
+      <div class="exam-time-expired-icon">⏰</div>
+      <h2>مدت زمان آزمون تمام شد!</h2>
+      <p>
+        مدت زمان پاسخگویی شما به پایان رسیده است.<br>
+        پاسخ‌های شما ذخیره شده و نتیجه پس از پایان بازه رسمی آزمون قابل مشاهده خواهد بود.
+      </p>
+      <div id="examTimeExpiredCountdown" class="exam-time-expired-countdown"></div>
+      <p style="font-size:13px;color:#999;">تا پایان بازه شرکت در آزمون</p>
+      <button class="exam-time-expired-back" onclick="exitExamTimeExpired()">← بازگشت به آزمون‌ها</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== صفحه پاسخنامه یکجای دانش‌آموز ===== -->
+<div id="studentAnswerSheetScreen" class="hidden">
+  <div class="exam-page">
+    <div class="exam-header">
+      <button class="logout-btn" onclick="backToExamFromSheet()">← بازگشت</button>
+      <h2>📝 پاسخنامه یکجا</h2>
+      <div class="exam-timer" id="sheetTimer">⏱️ 00:00</div>
+    </div>
+    <div class="exam-body">
+      <div class="question-text">
+        <strong>پاسخ همه سوالات را در همین صفحه انتخاب کنید.</strong>
+        <div style="font-size:12px;color:#777;margin-top:6px;">
+          گزینه انتخاب‌شده با رنگ سبز مشخص می‌شود.
+        </div>
+      </div>
+      <div id="studentAnswerSheetBody" class="student-answer-sheet"></div>
+      <div class="answer-sheet-actions">
+        <button class="btn-sheet-back" onclick="backToExamFromSheet()">← بازگشت به سوالات</button>
+        <button class="btn-sheet-submit" onclick="submitFromAnswerSheet()">✅ ثبت نهایی آزمون</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== صفحه انتظار تا پایان رسمی آزمون ===== -->
+<div id="resultsPendingScreen" class="hidden">
+  <div class="exam-page">
+    <div class="exam-header">
+      <button class="logout-btn" onclick="exitPendingResults()">← بازگشت</button>
+      <h2>⏳ آزمون ثبت شد</h2>
+    </div>
+    <div class="exam-body" id="pendingBody" style="text-align:center;padding:50px 20px;"></div>
+  </div>
+</div>
+
+<!-- ===== صفحه نتیجه ===== -->
+<div id="resultScreen" class="hidden">
+  <div class="exam-page">
+    <div class="exam-header">
+      <button class="logout-btn" onclick="exitResult()">← بازگشت به آزمون‌ها</button>
+      <h2>📊 نتیجه آزمون</h2>
+    </div>
+    <div class="exam-body" id="resultBody"></div>
+  </div>
+</div>
+
+<!-- ===== صفحه نتایج مدیر ===== -->
+<div id="adminResultsScreen" class="hidden">
+  <div class="exam-page">
+    <div class="exam-header">
+      <button class="logout-btn" onclick="exitAdminResults()">← بازگشت</button>
+      <h2 id="adminResultsTitle">📊 نتایج آزمون</h2>
+      <button class="btn-primary" onclick="downloadResultsPDF()">📥 دانلود PDF</button>
+    </div>
+    <div class="exam-body" id="adminResultsBody"></div>
+  </div>
+</div>
+
+<!-- ===== مودال ساخت آزمون ===== -->
+<div id="createTestModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>➕ ایجاد آزمون جدید</h2>
+      <button class="modal-close" onclick="closeCreateTestModal()">✕</button>
+    </div>
+    <div class="form-group">
+      <label>نام آزمون</label>
+      <input type="text" id="testName" placeholder="مثلاً: آزمون ریاضی">
+    </div>
+    <div class="form-group">
+      <label>کانال/گروه مقصد (برای اطلاع‌رسانی)</label>
+      <select id="testChannelSelect">
+        <option value="">— انتخاب کنید —</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>تعداد سوالات</label>
+      <input type="number" id="testQuestionCount" min="1" max="50" value="10">
+    </div>
+    <div class="form-group">
+      <label>مدت زمان (دقیقه)</label>
+      <input type="number" id="testDuration" min="1" max="180" value="30">
+    </div>
+    <div class="form-group">
+      <label>چند روز بعد شروع شود؟ (اختیاری — خالی = امروز)</label>
+      <input type="number" id="testDaysAfter" min="0" max="30" placeholder="مثلاً: ۲">
+    </div>
+    <div class="form-group">
+      <label>ساعت شروع (۲۴ ساعته) — اجباری (خودکار: ۵ دقیقه بعد)</label>
+      <div style="display: flex; gap: 8px;">
+        <input type="number" id="testStartHour" min="0" max="23" placeholder="ساعت (۰-۲۳)" style="width: 100px;">
+        <span style="line-height: 40px;">:</span>
+        <input type="number" id="testStartMinute" min="0" max="59" placeholder="دقیقه" style="width: 100px;">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>ساعت پایان (۲۴ ساعته) — اختیاری (خالی = خودکار: شروع + مدت زمان + ۵ دقیقه)</label>
+      <div style="display: flex; gap: 8px;">
+        <input type="number" id="testEndHour" min="0" max="23" placeholder="ساعت (۰-۲۳)" style="width: 100px;">
+        <span style="line-height: 40px;">:</span>
+        <input type="number" id="testEndMinute" min="0" max="59" placeholder="دقیقه" style="width: 100px;">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>فایل PDF سوالات</label>
+      <input type="file" id="testPdf" accept=".pdf">
+    </div>
+    <button class="btn-primary" style="width: 100%; margin-bottom: 10px;" onclick="openQuestionEditor()">🔑 وارد کردن کلید سوالات</button>
+    <div id="questionsContainer"></div>
+    <button class="btn-primary" style="width: 100%; background: #4CAF50;" onclick="saveTest()">💾 ذخیره آزمون</button>
+  </div>
+</div>
+
+<!-- ===== مودال ویرایش آزمون ===== -->
+<div id="editTestModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>✏️ ویرایش آزمون</h2>
+      <button class="modal-close" onclick="closeEditTestModal()">✕</button>
+    </div>
+    <div class="form-group">
+      <label>نام آزمون</label>
+      <input type="text" id="editTestName">
+    </div>
+    <div class="form-group">
+      <label>کانال/گروه مقصد (برای اطلاع‌رسانی)</label>
+      <select id="editTestChannelSelect">
+        <option value="">— انتخاب کنید —</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>مدت زمان (دقیقه)</label>
+      <input type="number" id="editTestDuration" min="1" max="180">
+    </div>
+    <div class="form-group">
+      <label>چند روز بعد شروع شود؟ (اختیاری — خالی = امروز)</label>
+      <input type="number" id="editDaysAfter" min="0" max="30" placeholder="مثلاً: ۲">
+    </div>
+    <div class="form-group">
+      <label>ساعت شروع (۲۴ ساعته) — اجباری</label>
+      <div style="display: flex; gap: 8px;">
+        <input type="number" id="editStartHour" min="0" max="23" style="width: 100px;">
+        <span style="line-height: 40px;">:</span>
+        <input type="number" id="editStartMinute" min="0" max="59" style="width: 100px;">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>ساعت پایان (۲۴ ساعته) — اختیاری (خالی = خودکار: شروع + مدت زمان + ۵ دقیقه)</label>
+      <div style="display: flex; gap: 8px;">
+        <input type="number" id="editEndHour" min="0" max="23" style="width: 100px;">
+        <span style="line-height: 40px;">:</span>
+        <input type="number" id="editEndMinute" min="0" max="59" style="width: 100px;">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>فایل PDF جدید (اختیاری)</label>
+      <input type="file" id="editTestPdf" accept=".pdf">
+      <div id="editPdfFileName" style="font-size: 12px; color: #666; margin-top: 5px;"></div>
+    </div>
+    <div class="form-group">
+      <label>ویرایش کلید سوالات</label>
+      <button class="btn-primary" style="width: 100%; margin-bottom: 10px;" onclick="openEditQuestionEditor()">🔑 ویرایش کلید سوالات</button>
+      <div id="editQuestionsContainer"></div>
+    </div>
+    <button class="btn-primary" style="width: 100%; background: #4CAF50;" onclick="saveEditTest()">💾 ذخیره تغییرات</button>
+  </div>
+</div>
+
+<script>
+// ===== داده‌ها =====
+let appData = {
+  studentPassword: 'student123',
+  channelMessages: [],
+  tests: [],
+  submissions: {},
+  studentProfiles: {},
+  allowedUsers: [],
+  channels: [],
+  studentChannelMemberships: {}
+};
+
+function loadData() {
+  const saved = localStorage.getItem('examAppData');
+  if (saved) {
+    try {
+      appData = JSON.parse(saved);
+      if (!appData.studentPassword) appData.studentPassword = 'student123';
+      if (!appData.channelMessages) appData.channelMessages = [];
+      if (!appData.tests) appData.tests = [];
+      if (!appData.submissions) appData.submissions = {};
+      if (!appData.studentProfiles) appData.studentProfiles = {};
+      if (!appData.allowedUsers) appData.allowedUsers = [];
+      if (!appData.channels) appData.channels = [];
+      if (!appData.studentChannelMemberships) appData.studentChannelMemberships = {};
+    } catch (e) {
+      appData = {
+        studentPassword: 'student123',
+        channelMessages: [],
+        tests: [],
+        submissions: {},
+        studentProfiles: {},
+        allowedUsers: [],
+        channels: [],
+        studentChannelMemberships: {}
+      };
+    }
+  }
+}
+function saveData() {
+  localStorage.setItem('examAppData', JSON.stringify(appData));
+}
+
+function makeTestId() {
+  return 'exam_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
+}
+
+function getTestId(test) {
+  if (!test.id) test.id = makeTestId();
+  return test.id;
+}
+
+function getSubmissionKey(test) {
+  const phone = currentStudentPhone || 'guest';
+  return `test_${getTestId(test)}_${phone}`;
+}
+
+function migrateTestIds() {
+  if (!Array.isArray(appData.tests)) return;
+  let changed = false;
+  let hasLegacySubmissionKeys = false;
+  appData.tests.forEach(test => {
+    if (!test.id) {
+      test.id = makeTestId();
+      changed = true;
+    }
+  });
+  Object.keys(appData.submissions || {}).forEach(key => {
+    if (/^test_\d+$/.test(key)) {
+      delete appData.submissions[key];
+      hasLegacySubmissionKeys = true;
+      changed = true;
+    }
+  });
+  if (changed || hasLegacySubmissionKeys) saveData();
+}
+
+// ===== وضعیت =====
+let currentRole = null;
+let currentTab = 'channel';
+let currentTestQuestions = [];
+let editingTestIndex = null;
+let editingQuestions = [];
+let currentStudentPhone = null;
+let currentChannelId = null; // کانال فعلی
+let currentGroupId = null;   // گروه فعلی
+let selectedChannelDetailId = null;
+
+let currentTestIndex = null;
+let currentQuestionIndex = 0;
+let testAnswers = [];
+let testTimerInterval = null;
+let testTimeLeft = 0;
+let currentAttemptNumber = 1;
+let currentResultData = null;
+let pendingResultTimer = null;
+let adminResultsTestIndex = null;
+let currentTestMode = 'official';
+
+let countdownInterval = null;
+let examInfoCountdownInterval = null;
+let examInfoTestIndex = null;
+let examTimeExpiredInterval = null;
+let examTimeExpiredTestIndex = null;
+
+// ===== توابع زمان =====
+function formatTime24(timeStr) {
+  if (!timeStr) return 'نامشخص';
+  return timeStr;
+}
+function timeToMinutes(timeStr) {
+  if (!timeStr) return null;
+  const parts = timeStr.split(':');
+  return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+}
+function getCurrentMinutes() {
+  const now = new Date();
+  return now.getHours() * 60 + now.getMinutes();
+}
+
+// ===== تولید HTML شمارش معکوس =====
+function buildCountdownBoxes(startTimestamp) {
+  const now = Date.now();
+  const diff = startTimestamp - now;
+  if (diff <= 0) return 'آزمون شروع شده!';
+  const totalSeconds = Math.floor(diff / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  let boxes = '';
+  if (days > 0) {
+    boxes += `<div class="countdown-box"><span class="cd-num">${String(days).padStart(2, '0')}</span><span class="cd-lbl">روز</span></div><div class="countdown-sep">:</div>`;
+  }
+  if (days > 0 || hours > 0) {
+    boxes += `<div class="countdown-box"><span class="cd-num">${String(hours).padStart(2, '0')}</span><span class="cd-lbl">ساعت</span></div><div class="countdown-sep">:</div>`;
+  }
+  if (days > 0 || hours > 0 || minutes > 0) {
+    boxes += `<div class="countdown-box"><span class="cd-num">${String(minutes).padStart(2, '0')}</span><span class="cd-lbl">دقیقه</span></div><div class="countdown-sep">:</div>`;
+  }
+  boxes += `<div class="countdown-box"><span class="cd-num">${String(seconds).padStart(2, '0')}</span><span class="cd-lbl">ثانیه</span></div>`;
+  return `<div class="countdown-boxes">${boxes}</div>`;
+}
+
+function buildCountdownBoxesUntilEnd(endTimestamp) {
+  const now = Date.now();
+  const diff = endTimestamp - now;
+  if (diff <= 0) return '⏰ بازه آزمون تمام شد!';
+  const totalSeconds = Math.floor(diff / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  let boxes = '';
+  if (days > 0) {
+    boxes += `<div class="countdown-box"><span class="cd-num">${String(days).padStart(2, '0')}</span><span class="cd-lbl">روز</span></div><div class="countdown-sep">:</div>`;
+  }
+  if (days > 0 || hours > 0) {
+    boxes += `<div class="countdown-box"><span class="cd-num">${String(hours).padStart(2, '0')}</span><span class="cd-lbl">ساعت</span></div><div class="countdown-sep">:</div>`;
+  }
+  if (days > 0 || hours > 0 || minutes > 0) {
+    boxes += `<div class="countdown-box"><span class="cd-num">${String(minutes).padStart(2, '0')}</span><span class="cd-lbl">دقیقه</span></div><div class="countdown-sep">:</div>`;
+  }
+  boxes += `<div class="countdown-box"><span class="cd-num">${String(seconds).padStart(2, '0')}</span><span class="cd-lbl">ثانیه</span></div>`;
+  return `<div class="countdown-boxes">${boxes}</div>`;
+}
+
+function getExamStartTimestamp(test) {
+  if (!test || !test.startTime) return null;
+  const now = new Date();
+  const [hour, minute] = test.startTime.split(':').map(Number);
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+  const daysAfter = Number(test.daysAfter) || 0;
+  start.setDate(start.getDate() + daysAfter);
+  start.setHours(hour, minute, 0, 0);
+  return start.getTime();
+}
+
+function getExamEndTimestamp(test) {
+  if (!test || !test.startTime || !test.endTime) return null;
+  const startTs = getExamStartTimestamp(test);
+  if (!startTs) return null;
+  const [startHour, startMinute] = test.startTime.split(':').map(Number);
+  const [endHour, endMinute] = test.endTime.split(':').map(Number);
+  const start = new Date(startTs);
+  const end = new Date(start.getFullYear(), start.getMonth(), start.getDate(), endHour, endMinute, 0, 0);
+  const startMinutes = startHour * 60 + startMinute;
+  const endMinutes = endHour * 60 + endMinute;
+  if (endMinutes < startMinutes) {
+    end.setDate(end.getDate() + 1);
+  }
+  return end.getTime();
+}
+
+function getTestStatus(test) {
+  if (test.isFinished) return 'finished';
+  if (test.startTime) {
+    const startTs = getExamStartTimestamp(test);
+    const endTs = getExamEndTimestamp(test);
+    const now = Date.now();
+    if (now < startTs) return 'not-started';
+    if (now >= startTs && now < endTs) return 'active';
+    return 'finished';
+  }
+  if (test.isActive) return 'active';
+  return 'not-started';
+}
+
+function startCountdownUpdater() {
+  if (countdownInterval) clearInterval(countdownInterval);
+  countdownInterval = setInterval(() => {
+    document.querySelectorAll('.test-countdown-box').forEach(el => {
+      const startTs = parseInt(el.dataset.start);
+      if (startTs) {
+        el.querySelector('.cd-time').innerHTML = buildCountdownBoxes(startTs);
+        if (startTs <= Date.now()) {
+          renderTests();
+          renderChannel();
+          renderGroup();
+        }
+      }
+    });
+  }, 1000);
+}
+
+// ===== ورود =====
+function showLoginForm(role) {
+  currentRole = role;
+  document.getElementById('loginForm').classList.remove('hidden');
+  document.getElementById('loginError').textContent = '';
+  document.getElementById('loginPassword').value = '';
+  document.getElementById('loginPassword').placeholder = role === 'admin' ? 'رمز مدیر' : 'رمز دانش‌آموز';
+}
+
+function handleLogin() {
+  const password = document.getElementById('loginPassword').value;
+  const errorEl = document.getElementById('loginError');
+  if (currentRole === 'admin') {
+    if (password === 'admin23') {
+      enterApp('admin');
+    } else {
+      errorEl.textContent = 'رمز مدیر اشتباه است!';
+    }
+  } else if (currentRole === 'student') {
+    if (password === appData.studentPassword) {
+      showPhoneVerification();
+    } else {
+      errorEl.textContent = 'رمز دانش‌آموز اشتباه است!';
+    }
+  }
+}
+
+function showPhoneVerification() {
+  const phone = prompt('📱 شماره موبایل خود را وارد کنید:');
+  if (phone === null) return;
+  const trimmedPhone = phone.trim();
+  if (!trimmedPhone) {
+    alert('⚠️ شماره موبایل را وارد کنید!');
+    return;
+  }
+  const isAllowed = appData.allowedUsers.some(u => u.phone === trimmedPhone);
+  if (isAllowed) {
+    currentStudentPhone = trimmedPhone;
+    localStorage.setItem('examStudentPhone', trimmedPhone);
+    enterApp('student');
+  } else {
+    alert('⛔ این شماره موبایل توسط مدیر تایید نشده است!\nبرای ورود، ابتدا مدیر باید شماره شما را تایید کند.');
+    document.getElementById('loginError').textContent = '⛔ شماره موبایل شما مجاز نیست. با مدیر تماس بگیرید.';
+  }
+}
+
+function enterApp(role) {
+  currentRole = role;
+  localStorage.setItem('examRole', role);
+  
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('mainScreen').classList.remove('hidden');
+  document.getElementById('userBadge').textContent = role === 'admin' ? '👨‍🏫 مدیر' : '🎓 دانش‌آموز';
+  
+  // ===== نمایش/مخفی کردن تب‌ها بر اساس نقش =====
+  document.querySelectorAll('.sidebar-item[data-tab="profile"]').forEach(el => {
+    el.classList.toggle('hidden', role !== 'student');
+  });
+  document.getElementById('tab-profile').classList.toggle('hidden', role !== 'student');
+  
+  document.querySelectorAll('.sidebar-item[data-tab="users"]').forEach(el => {
+    el.classList.toggle('hidden', role !== 'admin');
+  });
+  document.getElementById('tab-users').classList.toggle('hidden', role !== 'admin');
+  
+  document.querySelectorAll('.sidebar-item[data-tab="channels"]').forEach(el => {
+    el.classList.toggle('hidden', role !== 'admin');
+  });
+  document.getElementById('tab-channels').classList.toggle('hidden', role !== 'admin');
+  
+  document.querySelectorAll('.sidebar-item[data-tab="search"]').forEach(el => {
+    el.classList.toggle('hidden', role !== 'student');
+  });
+  document.getElementById('tab-search').classList.toggle('hidden', role !== 'student');
+  
+  document.querySelectorAll('.sidebar-item[data-tab="settings"]').forEach(el => {
+    el.classList.toggle('hidden', role !== 'admin');
+  });
+  
+  if (role === 'student') {
+    loadProfile();
+    // ===== انتخاب اولین کانال و گروه عضوشده =====
+    const myChannels = getMyChannels();
+    const myGroups = getMyGroups();
+    if (myChannels.length > 0) currentChannelId = myChannels[0].id;
+    if (myGroups.length > 0) currentGroupId = myGroups[0].id;
+  } else {
+    // ===== مدیر: انتخاب اولین کانال و گروه =====
+    const channels = getChannels();
+    const groups = getGroups();
+    if (channels.length > 0) currentChannelId = channels[0].id;
+    if (groups.length > 0) currentGroupId = groups[0].id;
+  }
+  
+  switchTab('channel');
+  renderAll();
+}
+
+function logout() {
+  currentRole = null;
+  currentStudentPhone = null;
+  currentChannelId = null;
+  currentGroupId = null;
+  selectedChannelDetailId = null;
+  localStorage.removeItem('examRole');
+  localStorage.removeItem('examStudentPhone');
+  clearInterval(testTimerInterval);
+  clearInterval(countdownInterval);
+  clearInterval(examInfoCountdownInterval);
+  clearInterval(examTimeExpiredInterval);
+  document.getElementById('mainScreen').classList.add('hidden');
+  document.getElementById('examScreen').classList.add('hidden');
+  document.getElementById('studentAnswerSheetScreen').classList.add('hidden');
+  document.getElementById('resultScreen').classList.add('hidden');
+  document.getElementById('resultsPendingScreen').classList.add('hidden');
+  document.getElementById('adminResultsScreen').classList.add('hidden');
+  document.getElementById('examInfoScreen').classList.add('hidden');
+  document.getElementById('examTimeExpiredScreen').classList.add('hidden');
+  clearInterval(pendingResultTimer);
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('loginForm').classList.add('hidden');
+}
+
+// ===== تب‌ها =====
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.sidebar-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.tab === tab);
+  });
+  document.getElementById('tab-channel').classList.toggle('hidden', tab !== 'channel');
+  document.getElementById('tab-group').classList.toggle('hidden', tab !== 'group');
+  document.getElementById('tab-tests').classList.toggle('hidden', tab !== 'tests');
+  document.getElementById('tab-settings').classList.toggle('hidden', tab !== 'settings');
+  document.getElementById('tab-profile').classList.toggle('hidden', tab !== 'profile');
+  document.getElementById('tab-users').classList.toggle('hidden', tab !== 'users');
+  document.getElementById('tab-channels').classList.toggle('hidden', tab !== 'channels');
+  document.getElementById('tab-search').classList.toggle('hidden', tab !== 'search');
+  
+  if (tab === 'users') renderAllowedUsers();
+  if (tab === 'channels') renderChannelsList();
+  if (tab === 'channel') renderChannel();
+  if (tab === 'group') renderGroup();
+  if (tab === 'search') renderMyChannels();
+}
+
+// ===== رندر =====
+function renderAll() {
+  renderChannel();
+  renderGroup();
+  renderTests();
+  renderChannelsList();
+  renderMyChannels();
+  document.getElementById('currentStudentPassword').textContent = appData.studentPassword;
+}
+
+// ===== توابع کمکی نوع کانال/گروه =====
+function isGroup(channel) {
+  return channel && channel.channelId && !channel.channelId.startsWith('@');
+}
+
+function isPrivate(channel) {
+  return channel && channel.privacy === 'private';
+}
+
+function getChannelTypeLabel(channel) {
+  return isGroup(channel) ? 'گروه' : 'کانال';
+}
+
+function getChannelIcon(channel) {
+  return isGroup(channel) ? '👥' : '📡';
+}
+
+// ===== فیلتر کانال‌ها (فقط کانال‌ها) =====
+function getChannels() {
+  return appData.channels.filter(c => !isGroup(c));
+}
+
+// ===== فیلتر گروه‌ها (فقط گروه‌ها) =====
+function getGroups() {
+  return appData.channels.filter(c => isGroup(c));
+}
+
+function generateInviteCode() {
+  return 'invite_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+}
+
+// ===== کانال‌ها و گروه‌ها (مدیر) =====
+function addChannel() {
+  const nameInput = document.getElementById('newChannelName');
+  const idInput = document.getElementById('newChannelId');
+  const privacySelect = document.getElementById('newChannelPrivacy');
+  const name = nameInput.value.trim();
+  const channelId = idInput.value.trim();
+  const privacy = privacySelect.value;
+  const msgEl = document.getElementById('addChannelMsg');
+  
+  if (!name) {
+    msgEl.innerHTML = '<div style="color:#f44336; font-size:13px; margin-top:10px;">نام کانال/گروه را وارد کنید!</div>';
+    return;
+  }
+  if (!channelId) {
+    msgEl.innerHTML = '<div style="color:#f44336; font-size:13px; margin-top:10px;">آیدی کانال/گروه را وارد کنید!</div>';
+    return;
+  }
+  if (appData.channels.some(c => c.channelId === channelId)) {
+    msgEl.innerHTML = '<div style="color:#f44336; font-size:13px; margin-top:10px;">این آیدی قبلاً استفاده شده است!</div>';
+    return;
+  }
+  
+  const type = channelId.startsWith('@') ? 'channel' : 'group';
+  
+  const newChannel = {
+    id: 'ch_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6),
+    name: name,
+    channelId: channelId,
+    type: type,
+    privacy: privacy,
+    createdAt: Date.now(),
+    messages: []
+  };
+  
+  if (privacy === 'private' && type === 'group') {
+    newChannel.inviteCode = generateInviteCode();
+  }
+  
+  appData.channels.push(newChannel);
+  saveData();
+  nameInput.value = '';
+  idInput.value = '';
+  msgEl.innerHTML = `<div style="color:#4CAF50; font-size:13px; margin-top:10px;">✅ ${type === 'group' ? 'گروه' : 'کانال'} با موفقیت ساخته شد</div>`;
+  renderChannelsList();
+  
+  if (appData.channels.length === 1) {
+    if (type === 'group') {
+      currentGroupId = newChannel.id;
+    } else {
+      currentChannelId = newChannel.id;
+    }
+  }
+}
+
+function deleteChannel(index) {
+  const channel = appData.channels[index];
+  if (!confirm(`آیا از حذف ${getChannelTypeLabel(channel)} «${channel.name}» مطمئن هستید؟`)) return;
+  
+  appData.channels.splice(index, 1);
+  
+  Object.keys(appData.studentChannelMemberships || {}).forEach(phone => {
+    appData.studentChannelMemberships[phone] = (appData.studentChannelMemberships[phone] || []).filter(id => id !== channel.id);
+  });
+  
+  if (currentChannelId === channel.id) {
+    const channels = getChannels();
+    currentChannelId = channels.length > 0 ? channels[0].id : null;
+  }
+  if (currentGroupId === channel.id) {
+    const groups = getGroups();
+    currentGroupId = groups.length > 0 ? groups[0].id : null;
+  }
+  if (selectedChannelDetailId === channel.id) {
+    selectedChannelDetailId = null;
+  }
+  
+  saveData();
+  renderChannelsList();
+  renderChannel();
+  renderGroup();
+  renderMyChannels();
+}
+
+function getChannelMemberCount(channelId) {
+  let count = 0;
+  Object.keys(appData.studentChannelMemberships || {}).forEach(phone => {
+    if ((appData.studentChannelMemberships[phone] || []).includes(channelId)) {
+      count++;
+    }
+  });
+  return count;
+}
+
+function getChannelMembers(channelId) {
+  const members = [];
+  Object.keys(appData.studentChannelMemberships || {}).forEach(phone => {
+    if ((appData.studentChannelMemberships[phone] || []).includes(channelId)) {
+      const profile = appData.studentProfiles?.[phone];
+      members.push({
+        phone: phone,
+        username: profile?.username || 'نامشخص',
+        id: profile?.id || '—'
+      });
+    }
+  });
+  return members;
+}
+
+function renderChannelsList() {
+  const container = document.getElementById('channelsList');
+  
+  if (appData.channels.length === 0) {
+    container.innerHTML = '<div class="channel-list-empty">📭 هنوز کانال/گروهی ساخته نشده است</div>';
+    return;
+  }
+  
+  container.innerHTML = appData.channels.map((channel, index) => {
+    const testCount = appData.tests.filter(t => t.channelId === channel.id).length;
+    const msgCount = (channel.messages || []).length;
+    const memberCount = getChannelMemberCount(channel.id);
+    const isSelected = selectedChannelDetailId === channel.id;
+    const privacyLabel = isPrivate(channel) ? '🔒 خصوصی' : '🌍 عمومی';
+    
+    return `
+      <div class="channel-list-item" style="${isSelected ? 'border-color:#667eea;box-shadow:0 3px 10px rgba(102,126,234,0.2);' : ''}" onclick="openChannelDetail('${channel.id}')">
+        <div class="channel-list-icon ${isGroup(channel) ? 'group' : ''}">${getChannelIcon(channel)}</div>
+        <div class="channel-list-info">
+          <div class="channel-list-name">${channel.name} <span style="font-size:10px;color:${isGroup(channel) ? '#4CAF50' : '#667eea'};">(${getChannelTypeLabel(channel)})</span></div>
+          <div class="channel-list-id">${channel.channelId}</div>
+          <div class="channel-list-count">${privacyLabel} — 👥 ${memberCount} عضو — ${testCount} آزمون — ${msgCount} پیام</div>
+        </div>
+        <button class="channel-list-delete" onclick="event.stopPropagation();deleteChannel(${index})">🗑️ حذف</button>
+      </div>
+    `;
+  }).join('');
+  
+  if (selectedChannelDetailId) {
+    renderChannelDetail();
+  }
+}
+
+function openChannelDetail(channelId) {
+  selectedChannelDetailId = channelId;
+  renderChannelsList();
+}
+
+function closeChannelDetail() {
+  selectedChannelDetailId = null;
+  renderChannelsList();
+}
+
+function renderChannelDetail() {
+  const container = document.getElementById('channelsList');
+  const channel = appData.channels.find(c => c.id === selectedChannelDetailId);
+  if (!channel) return;
+  
+  const memberCount = getChannelMemberCount(channel.id);
+  const members = getChannelMembers(channel.id);
+  const typeLabel = getChannelTypeLabel(channel);
+  const privacyLabel = isPrivate(channel) ? '🔒 خصوصی' : '🌍 عمومی';
+  
+  const membersHtml = members.length === 0
+    ? '<div class="channel-detail-empty">📭 هنوز عضوی ندارد</div>'
+    : members.map((m, i) => `
+        <div class="channel-detail-member">
+          <div class="phone">📱 ${m.phone}</div>
+          <div class="info">
+            ${m.username !== 'نامشخص' ? `<strong>${m.username}</strong> — @${m.id}` : 'پروفایل تنظیم نشده'}
+          </div>
+          <button class="remove-btn" onclick="removeMemberFromChannel('${channel.id}', '${m.phone}')">حذف</button>
+        </div>
+      `).join('');
+  
+  const inviteHtml = (isGroup(channel) && isPrivate(channel))
+    ? `
+      <div class="channel-detail-section">
+        <h5>🔗 کد دعوت گروه</h5>
+        <div class="channel-detail-edit-row">
+          <input type="text" id="inviteCodeDisplay" value="${channel.inviteCode || ''}" readonly style="direction:ltr;text-align:left;background:#f0f4ff;">
+          <button class="green" onclick="copyInviteCode()">📋 کپی</button>
+        </div>
+        <div id="inviteMsg" class="channel-detail-msg"></div>
+      </div>
+    ` : '';
+  
+  container.innerHTML = `
+    <div class="channel-detail-panel">
+      <div class="channel-detail-header">
+        <h4>${getChannelIcon(channel)} ${channel.name} <span style="font-size:11px;color:${isGroup(channel) ? '#4CAF50' : '#667eea'};">(${typeLabel} — ${privacyLabel})</span></h4>
+        <button class="channel-detail-close" onclick="closeChannelDetail()">✕</button>
+      </div>
+      
+      <div class="channel-detail-stats">
+        <div class="channel-detail-stat">
+          <div class="num">${memberCount}</div>
+          <div class="lbl">👥 اعضا</div>
+        </div>
+        <div class="channel-detail-stat">
+          <div class="num">${(channel.messages || []).length}</div>
+          <div class="lbl">💬 پیام‌ها</div>
+        </div>
+        <div class="channel-detail-stat">
+          <div class="num">${appData.tests.filter(t => t.channelId === channel.id).length}</div>
+          <div class="lbl">📝 آزمون‌ها</div>
+        </div>
+      </div>
+      
+      ${inviteHtml}
+      
+      <div class="channel-detail-section">
+        <h5>✏️ تغییر نام و آیدی</h5>
+        <div class="channel-detail-edit-row">
+          <input type="text" id="detailNameInput" value="${channel.name}" placeholder="نام جدید">
+        </div>
+        <div class="channel-detail-edit-row">
+          <input type="text" id="detailIdInput" value="${channel.channelId}" placeholder="آیدی جدید" style="direction:ltr;text-align:left;">
+          <button onclick="saveChannelEdit()">💾 ذخیره</button>
+        </div>
+        <div id="channelEditMsg" class="channel-detail-msg"></div>
+      </div>
+      
+      <div class="channel-detail-section">
+        <h5>➕ افزودن عضو با شماره</h5>
+        <div class="channel-detail-edit-row">
+          <input type="text" id="detailAddMemberInput" placeholder="شماره موبایل (مثلاً: 09123456789)" style="direction:ltr;text-align:left;">
+          <button class="green" onclick="addMemberToChannel()">➕ افزودن</button>
+        </div>
+        <div id="addMemberMsg" class="channel-detail-msg"></div>
+      </div>
+      
+      <div class="channel-detail-section">
+        <h5>👥 لیست اعضا (${memberCount} نفر)</h5>
+        ${membersHtml}
+      </div>
+    </div>
+  `;
+}
+
+function copyInviteCode() {
+  const input = document.getElementById('inviteCodeDisplay');
+  if (!input) return;
+  input.select();
+  document.execCommand('copy');
+  const msgEl = document.getElementById('inviteMsg');
+  msgEl.innerHTML = '<div style="color:#4CAF50;">✅ کد دعوت کپی شد!</div>';
+}
+
+function saveChannelEdit() {
+  const channel = appData.channels.find(c => c.id === selectedChannelDetailId);
+  if (!channel) return;
+  
+  const nameInput = document.getElementById('detailNameInput');
+  const idInput = document.getElementById('detailIdInput');
+  const msgEl = document.getElementById('channelEditMsg');
+  
+  const newName = nameInput.value.trim();
+  const newId = idInput.value.trim();
+  
+  if (!newName) {
+    msgEl.innerHTML = '<div style="color:#f44336;">نام را وارد کنید!</div>';
+    return;
+  }
+  if (!newId) {
+    msgEl.innerHTML = '<div style="color:#f44336;">آیدی را وارد کنید!</div>';
+    return;
+  }
+  
+  if (appData.channels.some(c => c.id !== channel.id && c.channelId === newId)) {
+    msgEl.innerHTML = '<div style="color:#f44336;">این آیدی قبلاً استفاده شده است!</div>';
+    return;
+  }
+  
+  channel.name = newName;
+  channel.channelId = newId;
+  channel.type = newId.startsWith('@') ? 'channel' : 'group';
+  saveData();
+  
+  msgEl.innerHTML = '<div style="color:#4CAF50;">✅ با موفقیت ذخیره شد</div>';
+  renderChannelsList();
+  renderChannel();
+  renderGroup();
+  renderMyChannels();
+}
+
+function addMemberToChannel() {
+  const channel = appData.channels.find(c => c.id === selectedChannelDetailId);
+  if (!channel) return;
+  
+  const input = document.getElementById('detailAddMemberInput');
+  const phone = input.value.trim();
+  const msgEl = document.getElementById('addMemberMsg');
+  
+  if (!phone) {
+    msgEl.innerHTML = '<div style="color:#f44336;">شماره موبایل را وارد کنید!</div>';
+    return;
+  }
+  
+  const members = getChannelMembers(channel.id);
+  if (members.some(m => m.phone === phone)) {
+    msgEl.innerHTML = '<div style="color:#f44336;">این شماره قبلاً عضو این ' + getChannelTypeLabel(channel) + ' است!</div>';
+    return;
+  }
+  
+  if (!appData.allowedUsers.some(u => u.phone === phone)) {
+    appData.allowedUsers.push({ phone: phone, addedAt: Date.now() });
+  }
+  
+  if (!appData.studentChannelMemberships) appData.studentChannelMemberships = {};
+  if (!appData.studentChannelMemberships[phone]) appData.studentChannelMemberships[phone] = [];
+  if (!appData.studentChannelMemberships[phone].includes(channel.id)) {
+    appData.studentChannelMemberships[phone].push(channel.id);
+  }
+  
+  saveData();
+  input.value = '';
+  msgEl.innerHTML = `<div style="color:#4CAF50;">✅ شماره ${phone} با موفقیت عضو ${getChannelTypeLabel(channel)} شد</div>`;
+  renderChannelsList();
+  renderMyChannels();
+}
+
+function removeMemberFromChannel(channelId, phone) {
+  const channel = appData.channels.find(c => c.id === channelId);
+  if (!channel) return;
+  
+  if (!confirm(`آیا از حذف شماره ${phone} از ${getChannelTypeLabel(channel)} «${channel.name}» مطمئن هستید؟`)) return;
+  
+  appData.studentChannelMemberships[phone] = (appData.studentChannelMemberships[phone] || []).filter(id => id !== channelId);
+  
+  if (currentStudentPhone === phone && currentChannelId === channelId) {
+    const myChannels = getMyChannels();
+    currentChannelId = myChannels.length > 0 ? myChannels[0].id : null;
+  }
+  if (currentStudentPhone === phone && currentGroupId === channelId) {
+    const myGroups = getMyGroups();
+    currentGroupId = myGroups.length > 0 ? myGroups[0].id : null;
+  }
+  
+  saveData();
+  renderChannelsList();
+  renderChannel();
+  renderGroup();
+  renderMyChannels();
+}
+
+// ===== عضویت دانش‌آموز =====
+function getMyChannels() {
+  if (!currentStudentPhone) return [];
+  const memberIds = appData.studentChannelMemberships?.[currentStudentPhone] || [];
+  return appData.channels.filter(c => memberIds.includes(c.id) && !isGroup(c));
+}
+
+function getMyGroups() {
+  if (!currentStudentPhone) return [];
+  const memberIds = appData.studentChannelMemberships?.[currentStudentPhone] || [];
+  return appData.channels.filter(c => memberIds.includes(c.id) && isGroup(c));
+}
+
+function isMemberOfChannel(channelId) {
+  if (!currentStudentPhone) return false;
+  const memberIds = appData.studentChannelMemberships?.[currentStudentPhone] || [];
+  return memberIds.includes(channelId);
+}
+
+function joinChannel(channelId) {
+  if (!currentStudentPhone) return;
+  if (!appData.studentChannelMemberships) appData.studentChannelMemberships = {};
+  if (!appData.studentChannelMemberships[currentStudentPhone]) appData.studentChannelMemberships[currentStudentPhone] = [];
+  
+  if (!appData.studentChannelMemberships[currentStudentPhone].includes(channelId)) {
+    appData.studentChannelMemberships[currentStudentPhone].push(channelId);
+    saveData();
+  }
+  
+  const channel = appData.channels.find(c => c.id === channelId);
+  if (isGroup(channel)) {
+    currentGroupId = channelId;
+  } else {
+    currentChannelId = channelId;
+  }
+  renderMyChannels();
+  renderChannel();
+  renderGroup();
+  alert('✅ با موفقیت عضو شدید!');
+}
+
+function leaveChannel(channelId) {
+  if (!currentStudentPhone) return;
+  const channel = appData.channels.find(c => c.id === channelId);
+  if (!confirm(`آیا از خروج از ${getChannelTypeLabel(channel)} «${channel.name}» مطمئن هستید؟`)) return;
+  
+  appData.studentChannelMemberships[currentStudentPhone] = (appData.studentChannelMemberships[currentStudentPhone] || []).filter(id => id !== channelId);
+  
+  if (currentChannelId === channelId) {
+    const myChannels = getMyChannels();
+    currentChannelId = myChannels.length > 0 ? myChannels[0].id : null;
+  }
+  if (currentGroupId === channelId) {
+    const myGroups = getMyGroups();
+    currentGroupId = myGroups.length > 0 ? myGroups[0].id : null;
+  }
+  
+  saveData();
+  renderMyChannels();
+  renderChannel();
+  renderGroup();
+}
+
+// ===== جستوجوی کانال (دانش‌آموز) =====
+function searchChannel() {
+  const input = document.getElementById('searchChannelInput');
+  const query = input.value.trim();
+  const resultEl = document.getElementById('searchResult');
+  
+  if (!query) {
+    resultEl.innerHTML = '<div class="search-result search-result-notfound">⚠️ آیدی کانال/گروه یا کد دعوت را وارد کنید!</div>';
+    return;
+  }
+  
+  const inviteChannel = appData.channels.find(c => c.inviteCode === query);
+  if (inviteChannel) {
+    const isMember = isMemberOfChannel(inviteChannel.id);
+    const typeLabel = getChannelTypeLabel(inviteChannel);
+    
+    resultEl.innerHTML = `
+      <div class="search-result search-result-found">
+        <div class="search-result-name">${getChannelIcon(inviteChannel)} ${inviteChannel.name} <span style="font-size:11px;color:${isGroup(inviteChannel) ? '#4CAF50' : '#667eea'};">(${typeLabel} — 🔒 خصوصی)</span></div>
+        <div class="search-result-id">کد دعوت: ${inviteChannel.inviteCode}</div>
+        ${isMember
+          ? '<button class="btn-joined" disabled>✅ عضو هستید</button>'
+          : `<button class="btn-join" onclick="joinChannel('${inviteChannel.id}')">➕ عضویت</button>`}
+      </div>
+    `;
+    return;
+  }
+  
+  const channel = appData.channels.find(c => c.channelId.toLowerCase() === query.toLowerCase() && c.privacy !== 'private');
+  
+  if (!channel) {
+    resultEl.innerHTML = `
+      <div class="search-result search-result-notfound">
+        <div class="search-result-name">❌ پیدا نشد</div>
+        <div style="font-size:12px;color:#999;">چیزی با آیدی «${query}» وجود ندارد یا خصوصی است.</div>
+      </div>
+    `;
+    return;
+  }
+  
+  const isMember = isMemberOfChannel(channel.id);
+  const typeLabel = getChannelTypeLabel(channel);
+  
+  resultEl.innerHTML = `
+    <div class="search-result search-result-found">
+      <div class="search-result-name">${getChannelIcon(channel)} ${channel.name} <span style="font-size:11px;color:${isGroup(channel) ? '#4CAF50' : '#667eea'};">(${typeLabel})</span></div>
+      <div class="search-result-id">${channel.channelId}</div>
+      ${isMember
+        ? '<button class="btn-joined" disabled>✅ عضو هستید</button>'
+        : `<button class="btn-join" onclick="joinChannel('${channel.id}')">➕ عضویت</button>`}
+    </div>
+  `;
+}
+
+function renderMyChannels() {
+  const container = document.getElementById('myChannelsList');
+  const myChannels = getMyChannels();
+  const myGroups = getMyGroups();
+  const all = [...myChannels, ...myGroups];
+  
+  if (all.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">📭 هنوز عضو هیچ کانال/گروهی نیستید. با جستوجوی آیدی یا کد دعوت، عضو شوید.</div>';
+    return;
+  }
+  
+  container.innerHTML = all.map(channel => `
+    <div class="my-channel-item">
+      <div class="my-channel-icon ${isGroup(channel) ? 'group' : ''}">${getChannelIcon(channel)}</div>
+      <div class="my-channel-info">
+        <div class="my-channel-name">${channel.name} <span style="font-size:10px;color:${isGroup(channel) ? '#4CAF50' : '#667eea'};">(${getChannelTypeLabel(channel)})</span></div>
+        <div class="my-channel-id">${channel.channelId}</div>
+      </div>
+      <button class="btn-leave" onclick="leaveChannel('${channel.id}')">🚪 خروج</button>
+    </div>
+  `).join('');
+}
+
+// ===== انتخاب کانال در تب کانال =====
+function renderChannelSelector() {
+  const container = document.getElementById('channelSelector');
+  
+  let availableChannels = [];
+  if (currentRole === 'admin') {
+    availableChannels = getChannels();
+  } else {
+    availableChannels = getMyChannels();
+  }
+  
+  if (availableChannels.length === 0) {
+    container.classList.remove('hidden');
+    if (currentRole === 'admin') {
+      container.innerHTML = '<div style="color:#999;font-size:13px;">📭 هنوز کانالی ساخته نشده. ابتدا از بخش «کانال‌ها و گروه‌ها» بسازید.</div>';
+    } else {
+      container.innerHTML = '<div style="color:#999;font-size:13px;">📭 هنوز عضو هیچ کانالی نیستید. از بخش «جستوجوی کانال» عضو شوید.</div>';
+    }
+    return;
+  }
+  
+  container.classList.remove('hidden');
+  container.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;background:#f8f9fa;padding:10px;border-radius:10px;border:1px solid #e0e0e0;">
+      <span style="font-size:13px;color:#666;">📡 کانال فعلی:</span>
+      <select id="channelSelect" onchange="changeCurrentChannel(this.value)" style="flex:1;padding:8px;border:2px solid #e0e0e0;border-radius:8px;font-size:13px;">
+        ${availableChannels.map(ch => `
+          <option value="${ch.id}" ${currentChannelId === ch.id ? 'selected' : ''}>${ch.name} (${ch.channelId})</option>
+        `).join('')}
+      </select>
+    </div>
+  `;
+}
+
+function changeCurrentChannel(channelId) {
+  currentChannelId = channelId;
+  renderChannel();
+}
+
+// ===== انتخاب گروه در تب گروه =====
+function renderGroupSelector() {
+  const container = document.getElementById('groupSelector');
+  
+  let availableGroups = [];
+  if (currentRole === 'admin') {
+    availableGroups = getGroups();
+  } else {
+    availableGroups = getMyGroups();
+  }
+  
+  if (availableGroups.length === 0) {
+    container.classList.remove('hidden');
+    if (currentRole === 'admin') {
+      container.innerHTML = '<div style="color:#999;font-size:13px;">📭 هنوز گروهی ساخته نشده. ابتدا از بخش «کانال‌ها و گروه‌ها» بسازید.</div>';
+    } else {
+      container.innerHTML = '<div style="color:#999;font-size:13px;">📭 هنوز عضو هیچ گروهی نیستید. از بخش «جستوجوی کانال» عضو شوید.</div>';
+    }
+    return;
+  }
+  
+  container.classList.remove('hidden');
+  container.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;background:#f8f9fa;padding:10px;border-radius:10px;border:1px solid #e0e0e0;">
+      <span style="font-size:13px;color:#666;">👥 گروه فعلی:</span>
+      <select id="groupSelect" onchange="changeCurrentGroup(this.value)" style="flex:1;padding:8px;border:2px solid #e0e0e0;border-radius:8px;font-size:13px;">
+        ${availableGroups.map(ch => `
+          <option value="${ch.id}" ${currentGroupId === ch.id ? 'selected' : ''}>${ch.name} (${ch.channelId})</option>
+        `).join('')}
+      </select>
+    </div>
+  `;
+}
+
+function changeCurrentGroup(groupId) {
+  currentGroupId = groupId;
+  renderGroup();
+}
+
+// ===== ارسال پیام به کانال =====
+function sendChannelMessage() {
+  const input = document.getElementById('adminMessageInput');
+  const text = input.value.trim();
+  if (!text) return;
+  
+  const channel = appData.channels.find(c => c.id === currentChannelId);
+  if (!channel) {
+    alert('⚠️ ابتدا یک کانال انتخاب کنید!');
+    return;
+  }
+  
+  if (!channel.messages) channel.messages = [];
+  channel.messages.push({
+    text: text,
+    sender: currentRole === 'admin' ? 'مدیر' : (appData.studentProfiles?.[currentStudentPhone]?.username || 'دانش‌آموز'),
+    senderPhone: currentStudentPhone || null,
+    time: new Date().toLocaleTimeString('fa-IR'),
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
+  });
+  saveData();
+  input.value = '';
+  renderChannel();
+}
+
+// ===== ارسال پیام به گروه =====
+function sendGroupMessage() {
+  const input = document.getElementById('groupMessageInput');
+  const text = input.value.trim();
+  if (!text) return;
+  
+  const channel = appData.channels.find(c => c.id === currentGroupId);
+  if (!channel) {
+    alert('⚠️ ابتدا یک گروه انتخاب کنید!');
+    return;
+  }
+  
+  if (!channel.messages) channel.messages = [];
+  channel.messages.push({
+    text: text,
+    sender: currentRole === 'admin' ? 'مدیر' : (appData.studentProfiles?.[currentStudentPhone]?.username || 'دانش‌آموز'),
+    senderPhone: currentStudentPhone || null,
+    time: new Date().toLocaleTimeString('fa-IR'),
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
+  });
+  saveData();
+  input.value = '';
+  renderGroup();
+}
+
+function editChannelMessage(index) {
+  const channel = appData.channels.find(c => c.id === currentChannelId);
+  if (!channel) return;
+  const msg = channel.messages[index];
+  if (!msg) return;
+  const newText = prompt('ویرایش پیام:', msg.text);
+  if (newText === null) return;
+  const trimmed = newText.trim();
+  if (!trimmed) return;
+  msg.text = trimmed;
+  msg.edited = true;
+  saveData();
+  renderChannel();
+}
+
+function editGroupMessage(index) {
+  const channel = appData.channels.find(c => c.id === currentGroupId);
+  if (!channel) return;
+  const msg = channel.messages[index];
+  if (!msg) return;
+  const newText = prompt('ویرایش پیام:', msg.text);
+  if (newText === null) return;
+  const trimmed = newText.trim();
+  if (!trimmed) return;
+  msg.text = trimmed;
+  msg.edited = true;
+  saveData();
+  renderGroup();
+}
+
+function deleteChannelMessage(index) {
+  const channel = appData.channels.find(c => c.id === currentChannelId);
+  if (!channel) return;
+  if (!confirm('آیا از حذف این پیام مطمئن هستید؟')) return;
+  channel.messages.splice(index, 1);
+  saveData();
+  renderChannel();
+}
+
+function deleteGroupMessage(index) {
+  const channel = appData.channels.find(c => c.id === currentGroupId);
+  if (!channel) return;
+  if (!confirm('آیا از حذف این پیام مطمئن هستید؟')) return;
+  channel.messages.splice(index, 1);
+  saveData();
+  renderGroup();
+}
+
+// ===== رندر پیام‌های کانال =====
+function renderChannel() {
+  const container = document.getElementById('channelMessages');
+  renderChannelSelector();
+  
+  if (!currentChannelId) {
+    if (currentRole === 'admin') {
+      container.innerHTML = '<div style="text-align:center; padding:30px; color:#999;">📭 ابتدا از بخش «کانال‌ها و گروه‌ها» یک کانال بسازید</div>';
+    } else {
+      container.innerHTML = '<div style="text-align:center; padding:30px; color:#999;">📭 هنوز عضو هیچ کانالی نیستید. از بخش «جستوجوی کانال» عضو شوید.</div>';
+    }
+    return;
+  }
+  
+  const channel = appData.channels.find(c => c.id === currentChannelId);
+  if (!channel) {
+    container.innerHTML = '<div style="text-align:center; padding:30px; color:#999;">📭 کانال پیدا نشد</div>';
+    return;
+  }
+  
+  // ===== در کانال فقط مدیر می‌تونه بفرسته =====
+  const canSend = currentRole === 'admin';
+  const inputArea = document.getElementById('channelInputArea');
+  inputArea.classList.toggle('hidden', !canSend);
+  
+  const messages = channel.messages || [];
+  
+  if (messages.length === 0) {
+    container.innerHTML = '<div style="text-align:center; padding:30px; color:#999;">📭 هنوز پیامی در این کانال ارسال نشده است</div>';
+    return;
+  }
+  
+  const isAdmin = currentRole === 'admin';
+  
+  container.innerHTML = messages.map((msg, index) => {
+    if (msg.type === 'test') {
+      const testIndex = appData.tests.findIndex(t => getTestId(t) === msg.testId);
+      if (testIndex === -1) return '';
+      const test = appData.tests[testIndex];
+      const testCardHtml = buildTestCard(test, testIndex);
+      
+      return `
+        <div class="channel-message" style="border-right: 4px solid #764ba2; max-width: 600px; margin: 0 auto 10px auto;">
+          ${isAdmin ? `
+            <div class="channel-actions">
+              <button class="channel-action-btn" onclick="editChannelMessage(${index})">✏️</button>
+              <button class="channel-action-btn delete" onclick="deleteChannelMessage(${index})">🗑️</button>
+            </div>
+          ` : ''}
+          <div class="channel-sender">👨‍🏫 ${msg.sender} — 📝 آزمون جدید</div>
+          ${testCardHtml}
+          <div class="channel-time">${msg.time}</div>
+        </div>
+      `;
+    }
+    
+    const isOwnMessage = currentRole === 'student' && msg.senderPhone === currentStudentPhone;
+    const canDelete = isAdmin || isOwnMessage;
+    
+    return `
+      <div class="channel-message">
+        ${canDelete ? `
+          <div class="channel-actions">
+            ${isAdmin ? `<button class="channel-action-btn" onclick="editChannelMessage(${index})">✏️</button>` : ''}
+            <button class="channel-action-btn delete" onclick="deleteChannelMessage(${index})">🗑️</button>
+          </div>
+        ` : ''}
+        <div class="channel-sender">${msg.senderPhone === currentStudentPhone ? '👤 ' : '👨‍🏫 '}${msg.sender}</div>
+        <div class="channel-text">${msg.text} ${msg.edited ? '<span style="font-size:10px;color:#999;">(ویرایش‌شده)</span>' : ''}</div>
+        <div class="channel-time">${msg.time}</div>
+      </div>
+    `;
+  }).join('');
+  
+  startCountdownUpdater();
+}
+
+// ===== رندر پیام‌های گروه =====
+function renderGroup() {
+  const container = document.getElementById('groupMessages');
+  renderGroupSelector();
+  
+  if (!currentGroupId) {
+    if (currentRole === 'admin') {
+      container.innerHTML = '<div style="text-align:center; padding:30px; color:#999;">📭 ابتدا از بخش «کانال‌ها و گروه‌ها» یک گروه بسازید</div>';
+    } else {
+      container.innerHTML = '<div style="text-align:center; padding:30px; color:#999;">📭 هنوز عضو هیچ گروهی نیستید. از بخش «جستوجوی کانال» عضو شوید.</div>';
+    }
+    return;
+  }
+  
+  const channel = appData.channels.find(c => c.id === currentGroupId);
+  if (!channel) {
+    container.innerHTML = '<div style="text-align:center; padding:30px; color:#999;">📭 گروه پیدا نشد</div>';
+    return;
+  }
+  
+  // ===== در گروه هم مدیر و هم دانش‌آموز می‌تونن بفرستن =====
+  const canSend = currentRole === 'admin' || (currentRole === 'student' && isGroup(channel));
+  const inputArea = document.getElementById('groupInputArea');
+  inputArea.classList.toggle('hidden', !canSend);
+  
+  const messages = channel.messages || [];
+  
+  if (messages.length === 0) {
+    container.innerHTML = '<div style="text-align:center; padding:30px; color:#999;">📭 هنوز پیامی در این گروه ارسال نشده است</div>';
+    return;
+  }
+  
+  const isAdmin = currentRole === 'admin';
+  
+  container.innerHTML = messages.map((msg, index) => {
+    if (msg.type === 'test') {
+      const testIndex = appData.tests.findIndex(t => getTestId(t) === msg.testId);
+      if (testIndex === -1) return '';
+      const test = appData.tests[testIndex];
+      const testCardHtml = buildTestCard(test, testIndex);
+      
+      return `
+        <div class="channel-message" style="border-right: 4px solid #764ba2; max-width: 600px; margin: 0 auto 10px auto;">
+          ${isAdmin ? `
+            <div class="channel-actions">
+              <button class="channel-action-btn" onclick="editGroupMessage(${index})">✏️</button>
+              <button class="channel-action-btn delete" onclick="deleteGroupMessage(${index})">🗑️</button>
+            </div>
+          ` : ''}
+          <div class="channel-sender">👨‍🏫 ${msg.sender} — 📝 آزمون جدید</div>
+          ${testCardHtml}
+          <div class="channel-time">${msg.time}</div>
+        </div>
+      `;
+    }
+    
+    const isOwnMessage = currentRole === 'student' && msg.senderPhone === currentStudentPhone;
+    const canDelete = isAdmin || isOwnMessage;
+    
+    return `
+      <div class="channel-message">
+        ${canDelete ? `
+          <div class="channel-actions">
+            ${isAdmin ? `<button class="channel-action-btn" onclick="editGroupMessage(${index})">✏️</button>` : ''}
+            <button class="channel-action-btn delete" onclick="deleteGroupMessage(${index})">🗑️</button>
+          </div>
+        ` : ''}
+        <div class="channel-sender">${msg.senderPhone === currentStudentPhone ? '👤 ' : '👨‍🏫 '}${msg.sender}</div>
+        <div class="channel-text">${msg.text} ${msg.edited ? '<span style="font-size:10px;color:#999;">(ویرایش‌شده)</span>' : ''}</div>
+        <div class="channel-time">${msg.time}</div>
+      </div>
+    `;
+  }).join('');
+  
+  startCountdownUpdater();
+}
+
+// ===== کاربران مجاز (مدیر) =====
+function addAllowedUser() {
+  const phoneInput = document.getElementById('newUserPhone');
+  const phone = phoneInput.value.trim();
+  const msgEl = document.getElementById('addUserMsg');
+  
+  if (!phone) {
+    msgEl.innerHTML = '<div style="color:#f44336; font-size:13px; margin-top:10px;">شماره موبایل را وارد کنید!</div>';
+    return;
+  }
+  
+  if (appData.allowedUsers.some(u => u.phone === phone)) {
+    msgEl.innerHTML = '<div style="color:#f44336; font-size:13px; margin-top:10px;">این شماره قبلاً اضافه شده است!</div>';
+    return;
+  }
+  
+  appData.allowedUsers.push({ phone: phone, addedAt: Date.now() });
+  saveData();
+  phoneInput.value = '';
+  msgEl.innerHTML = '<div style="color:#4CAF50; font-size:13px; margin-top:10px;">✅ شماره با موفقیت اضافه شد</div>';
+  renderAllowedUsers();
+}
+
+function removeAllowedUser(index) {
+  if (!confirm('آیا از حذف این شماره مطمئن هستید؟')) return;
+  
+  const user = appData.allowedUsers[index];
+  const phone = user.phone;
+  
+  appData.allowedUsers.splice(index, 1);
+  
+  if (appData.studentChannelMemberships) {
+    delete appData.studentChannelMemberships[phone];
+  }
+  
+  if (currentStudentPhone === phone) {
+    currentChannelId = null;
+    currentGroupId = null;
+    const myChannels = getMyChannels();
+    const myGroups = getMyGroups();
+    currentChannelId = myChannels.length > 0 ? myChannels[0].id : null;
+    currentGroupId = myGroups.length > 0 ? myGroups[0].id : null;
+  }
+  
+  saveData();
+  renderAllowedUsers();
+  renderChannelsList();
+  renderChannel();
+  renderGroup();
+  renderMyChannels();
+}
+
+function renderAllowedUsers() {
+  const container = document.getElementById('allowedUsersList');
+  
+  if (appData.allowedUsers.length === 0) {
+    container.innerHTML = '<div class="user-list-empty">📭 هنوز شماره‌ای اضافه نشده است</div>';
+    return;
+  }
+  
+  container.innerHTML = appData.allowedUsers.map((user, index) => {
+    const profile = appData.studentProfiles?.[user.phone];
+    
+    return `
+      <div class="user-list-item">
+        <div class="user-list-phone">📱 ${user.phone}</div>
+        <div class="user-list-info">
+          ${profile
+            ? `<span class="username">${profile.username}</span> — @${profile.id}`
+            : '<span style="color:#999;">هنوز پروفایل تنظیم نشده</span>'}
+        </div>
+        <button class="user-list-delete" onclick="removeAllowedUser(${index})">🗑️ حذف</button>
+      </div>
+    `;
+  }).join('');
+}
+
+// ===== پروفایل دانش‌آموز =====
+function loadProfile() {
+  const profile = currentStudentPhone ? appData.studentProfiles?.[currentStudentPhone] : null;
+  document.getElementById('profileUsername').value = profile?.username || '';
+  document.getElementById('profileId').value = profile?.id || '';
+}
+
+function saveProfile() {
+  const username = document.getElementById('profileUsername').value.trim();
+  const id = document.getElementById('profileId').value.trim();
+  const msgEl = document.getElementById('profileMsg');
+  
+  if (!username || !id) {
+    msgEl.innerHTML = '<div style="color:#f44336; font-size:13px; margin-top:10px;">نام کاربری و آیدی را وارد کنید!</div>';
+    return;
+  }
+  
+  if (!appData.studentProfiles) appData.studentProfiles = {};
+  appData.studentProfiles[currentStudentPhone] = { username, id, phone: currentStudentPhone };
+  saveData();
+  
+  document.getElementById('userBadge').textContent = `🎓 ${username}`;
+  msgEl.innerHTML = '<div style="color:#4CAF50; font-size:13px; margin-top:10px;">✅ پروفایل با موفقیت ذخیره شد</div>';
+}
+
+// ===== نهایی‌سازی خودکار آزمون‌های تموم‌شده =====
+function autoFinalizeExpiredExams() {
+  if (currentRole !== 'student' || !currentStudentPhone) return;
+  let changed = false;
+  
+  appData.tests.forEach((test, index) => {
+    const submissionKey = getSubmissionKey(test);
+    const submission = appData.submissions?.[submissionKey];
+    if (!submission) return;
+    
+    if (submission.officialInProgress && submission.officialResult) {
+      const officialEndTime = getOfficialExamEndTimestamp(test);
+      const now = Date.now();
+      if (officialEndTime && now >= officialEndTime) {
+        submission.officialCompleted = true;
+        submission.officialInProgress = false;
+        submission.resultPending = false;
+        submission.resultVisibleAt = now;
+        changed = true;
+      }
+    }
+    
+    if (submission.officialCompleted && submission.resultPending && submission.resultVisibleAt <= Date.now()) {
+      submission.resultPending = false;
+      submission.resultVisibleAt = Date.now();
+      changed = true;
+    }
+  });
+  
+  if (changed) saveData();
+}
+
+// ===== ساخت کارت آزمون =====
+function buildTestCard(test, index) {
+  const status = getTestStatus(test);
+  let statusHtml = '';
+  
+  if (status === 'not-started') {
+    statusHtml = '<span class="test-status status-waiting">⏳ غیرفعال</span>';
+  } else if (status === 'active') {
+    statusHtml = '<span class="test-status status-active">🟢 فعال</span>';
+  } else {
+    statusHtml = '<span class="test-status status-finished">🔴 تمام شده</span>';
+  }
+  
+  const startTs = getExamStartTimestamp(test);
+  const startDateStr = startTs ? new Date(startTs).toLocaleDateString('fa-IR') : '';
+  
+  let countdownHtml = '';
+  if (startTs && status === 'not-started') {
+    countdownHtml = `
+      <div class="test-countdown-box" data-start="${startTs}">
+        <span class="cd-icon">⏳</span>
+        <div class="cd-text">
+          <span class="cd-label">تا شروع آزمون</span>
+          <span class="cd-time">${buildCountdownBoxes(startTs)}</span>
+        </div>
+      </div>
+    `;
+  }
+  
+  const actions = [];
+  if (currentRole === 'admin') {
+    if (status === 'not-started') {
+      actions.push(`<button class="btn-activate" onclick="activateTest(${index})">🟢 فعال کردن</button>`);
+    } else if (status === 'active') {
+      actions.push(`<button class="btn-deactivate" onclick="deactivateTest(${index})">⛔ پایان آزمون</button>`);
+    } else {
+      actions.push(`<button class="btn-activate" onclick="activateTest(${index})">🔄 فعال مجدد</button>`);
+    }
+    
+    const canEdit = status !== 'active';
+    actions.push(`<button class="btn-edit" ${canEdit ? '' : 'disabled'} onclick="${canEdit ? `editTest(${index})` : 'alert(\'⛔ آزمون فعال است! ابتدا پایان دهید\')'}">✏️ ویرایش</button>`);
+    actions.push(`<button class="btn-delete" onclick="deleteTest(${index})">🗑️ حذف</button>`);
+    actions.push(`<button class="btn-results" onclick="showAdminResults(${index})">📊 نتایج</button>`);
+  } else {
+    const submission = appData.submissions?.[getSubmissionKey(test)];
+    const windowOpen = isExamWindowOpen(test);
+    const hasOfficialAttempt = submission?.officialCompleted === true;
+    const hasPracticeAttempt = submission?.practiceCompleted === true;
+    const hasPracticeInProgress = submission?.practiceInProgress === true;
+
+    if (status === 'not-started') {
+      actions.push(`
+        <button class="btn-not-started" onclick="showExamInfo(${index})">⏳ شروع نشده است</button>
+      `);
+    } else {
+      if (submission?.officialCompleted && submission?.resultPending && submission?.resultVisibleAt > Date.now()) {
+        actions.push(`<button class="btn-enter" style="background:#999;" onclick="showPendingResults(${index}, ${submission.resultVisibleAt}, true)">⏳ نتیجه پس از پایان بازه</button>`);
+      } else if (submission?.officialCompleted) {
+        actions.push(`<button class="btn-enter" onclick="showStudentResult(${index})">📊 مشاهده نتیجه</button>`);
+      } else if (submission?.officialInProgress && windowOpen) {
+        actions.push(`<button class="btn-enter" onclick="startTest(${index}, 'official')">▶️ ادامه آزمون</button>`);
+      } else if (submission?.officialInProgress && !windowOpen) {
+        actions.push(`<button class="btn-enter" onclick="showStudentResult(${index})">📊 مشاهده نتیجه</button>`);
+      } else if (windowOpen && !hasOfficialAttempt) {
+        actions.push(`<button class="btn-enter" onclick="startTest(${index}, 'official')">🚀 ورود به آزمون</button>`);
+      }
+      
+      if (!windowOpen) {
+        if (hasPracticeInProgress) {
+          actions.push(`<button class="btn-practice" onclick="startTest(${index}, 'practice')">▶️ ادامه شبیه‌ساز</button>`);
+        } else if (!hasPracticeAttempt) {
+          actions.push(`<button class="btn-practice" onclick="startTest(${index}, 'practice')">🎯 آزمون شبیه‌ساز</button>`);
+        } else {
+          actions.push(`<button class="btn-practice" onclick="showPracticeResult(${index})">🎯 نتیجه شبیه‌ساز</button>`);
+        }
+      }
+    }
+  }
+  
+  return `
+    <div class="test-card" style="margin-top:10px; background:white;">
+      ${countdownHtml}
+      <h3>${test.name}</h3>
+      <div class="test-meta">
+        <span>📝 ${test.questions.length} سوال</span>
+        <span>⏱️ ${test.duration} دقیقه</span>
+        ${test.startTime ? `<span>⏰ ${formatTime24(test.startTime)} تا ${test.endTime ? formatTime24(test.endTime) : 'خودکار'}</span>` : ''}
+        ${startDateStr ? `<span>📅 ${startDateStr}</span>` : ''}
+      </div>
+      ${statusHtml}
+      <div class="test-actions">${actions.join('')}</div>
+    </div>
+  `;
+}
+
+function showStudentResult(testIndex) {
+  const test = appData.tests[testIndex];
+  if (!test) return;
+  const submission = appData.submissions?.[getSubmissionKey(test)];
+  if (!submission?.officialResult) {
+    alert('هنوز نتیجه‌ای ثبت نشده است!');
+    return;
+  }
+  showResult(testIndex, submission.officialResult, false);
+}
+
+// ===== آزمون‌ها =====
+function renderTests() {
+  autoFinalizeExpiredExams();
+  
+  const container = document.getElementById('testsList');
+  if (appData.tests.length === 0) {
+    container.innerHTML = '<div style="text-align:center; padding:30px; color:#999;">📝 هنوز آزمونی ساخته نشده است</div>';
+    return;
+  }
+  
+  const sortedTests = [...appData.tests].reverse();
+  
+  container.innerHTML = sortedTests.map((test) => {
+    const originalIndex = appData.tests.indexOf(test);
+    return buildTestCard(test, originalIndex);
+  }).join('');
+  
+  startCountdownUpdater();
+}
+
+// ===== صفحه اطلاعات آزمون =====
+function showExamInfo(index) {
+  const test = appData.tests[index];
+  if (!test) return;
+  
+  examInfoTestIndex = index;
+  
+  document.getElementById('mainScreen').classList.add('hidden');
+  document.getElementById('examInfoScreen').classList.remove('hidden');
+  
+  document.getElementById('examInfoTitle').textContent = `📋 ${test.name}`;
+  
+  const startTs = getExamStartTimestamp(test);
+  const endTs = getExamEndTimestamp(test);
+  
+  const startDateStr = startTs ? new Date(startTs).toLocaleDateString('fa-IR') : 'نامشخص';
+  const startTimeStr = test.startTime ? formatTime24(test.startTime) : 'نامشخص';
+  const endTimeStr = test.endTime ? formatTime24(test.endTime) : 'خودکار (شروع + مدت + ۵ دقیقه)';
+  
+  const rows = `
+    <div class="exam-info-row">
+      <span class="label">📝 تعداد سوالات</span>
+      <span class="value">${test.questions.length} سوال</span>
+    </div>
+    <div class="exam-info-row">
+      <span class="label">⏱️ مدت زمان</span>
+      <span class="value">${test.duration} دقیقه</span>
+    </div>
+    <div class="exam-info-row">
+      <span class="label">📅 تاریخ شروع</span>
+      <span class="value">${startDateStr}</span>
+    </div>
+    <div class="exam-info-row">
+      <span class="label">⏰ ساعت شروع</span>
+      <span class="value">${startTimeStr}</span>
+    </div>
+    <div class="exam-info-row">
+      <span class="label">⏰ ساعت پایان</span>
+      <span class="value">${endTimeStr}</span>
+    </div>
+  `;
+  
+  document.getElementById('examInfoRows').innerHTML = rows;
+  
+  const countdownEl = document.getElementById('examInfoCountdown');
+  
+  if (startTs) {
+    if (examInfoCountdownInterval) clearInterval(examInfoCountdownInterval);
+    
+    const updateCountdown = () => {
+      const remaining = startTs - Date.now();
+      if (remaining <= 0) {
+        countdownEl.innerHTML = '🎉 آزمون شروع شد!';
+        clearInterval(examInfoCountdownInterval);
+        setTimeout(() => {
+          exitExamInfo();
+          renderTests();
+          renderChannel();
+          renderGroup();
+        }, 2000);
+        return;
+      }
+      countdownEl.innerHTML = buildCountdownBoxes(startTs);
+    };
+    
+    updateCountdown();
+    examInfoCountdownInterval = setInterval(updateCountdown, 1000);
+  } else {
+    countdownEl.innerHTML = '⏳ زمان شروع مشخص نشده است';
+  }
+}
+
+function exitExamInfo() {
+  clearInterval(examInfoCountdownInterval);
+  document.getElementById('examInfoScreen').classList.add('hidden');
+  document.getElementById('mainScreen').classList.remove('hidden');
+  renderTests();
+  renderChannel();
+  renderGroup();
+}
+
+// ===== فعال/غیرفعال کردن آزمون =====
+function activateTest(index) {
+  const test = appData.tests[index];
+  if (!test) return;
+  test.daysAfter = 0;
+  test.startTime = '22:00';
+  test.endTime = '23:00';
+  test.isActive = true;
+  test.isFinished = false;
+  saveData();
+  renderTests();
+  renderChannel();
+  renderGroup();
+  alert('✅ آزمون فعال شد! زمان آزمون: امروز از ساعت 22:00 تا 23:00.');
+}
+
+function deactivateTest(index) {
+  const test = appData.tests[index];
+  if (!test) return;
+  const manualEndedAt = Date.now();
+  test.isActive = false;
+  test.isFinished = true;
+  test.manualEndedAt = manualEndedAt;
+  
+  const submissionKey = getSubmissionKey(test);
+  const submission = appData.submissions?.[submissionKey];
+  
+  if (submission?.officialInProgress && submission?.officialResult) {
+    submission.officialCompleted = true;
+    submission.officialInProgress = false;
+    submission.resultPending = false;
+    submission.resultVisibleAt = manualEndedAt;
+  } else if (submission?.officialCompleted && submission?.resultPending) {
+    submission.resultPending = false;
+    submission.resultVisibleAt = manualEndedAt;
+  }
+  
+  saveData();
+  renderTests();
+  renderChannel();
+  renderGroup();
+  alert('⛔ آزمون رسماً پایان یافت و نتایج رسمی آماده نمایش هستند.');
+}
+
+function deleteTest(index) {
+  if (confirm('آیا از حذف این آزمون مطمئن هستید؟')) {
+    const test = appData.tests[index];
+    if (test) {
+      Object.keys(appData.submissions || {}).forEach(key => {
+        if (key.startsWith(`test_${getTestId(test)}_`)) {
+          delete appData.submissions[key];
+        }
+      });
+    }
+    appData.tests.splice(index, 1);
+    saveData();
+    renderTests();
+    renderChannel();
+    renderGroup();
+  }
+}
+
+// ===== نتایج مدیر =====
+function showAdminResults(index) {
+  const test = appData.tests[index];
+  if (!test) return;
+  adminResultsTestIndex = index;
+  document.getElementById('mainScreen').classList.add('hidden');
+  document.getElementById('adminResultsScreen').classList.remove('hidden');
+  document.getElementById('adminResultsTitle').textContent = `📊 نتایج: ${test.name}`;
+  renderAdminResults();
+}
+
+function exitAdminResults() {
+  document.getElementById('adminResultsScreen').classList.add('hidden');
+  document.getElementById('mainScreen').classList.remove('hidden');
+  renderTests();
+}
+
+function getAllOfficialResults(test) {
+  const testId = getTestId(test);
+  const entries = [];
+  
+  Object.keys(appData.submissions || {}).forEach(key => {
+    if (key.startsWith(`test_${testId}_`)) {
+      const sub = appData.submissions[key];
+      if (sub?.officialCompleted && sub?.officialResult) {
+        entries.push({
+          name: sub.officialResult.studentName || 'دانش‌آموز',
+          id: sub.officialResult.studentId || '—',
+          phone: sub.officialResult.studentPhone || '—',
+          percentage: sub.officialResult.percentage || 0,
+          score: sub.officialResult.score || 0,
+          correctCount: sub.officialResult.correctCount || 0,
+          wrongCount: sub.officialResult.wrongCount || 0,
+          unansweredCount: sub.officialResult.unansweredCount || 0,
+          attemptNumber: sub.officialResult.attemptNumber || 1,
+          submittedAt: sub.officialResult.submittedAt || 0
+        });
+      }
+    }
+  });
+  
+  entries.sort((a, b) => {
+    if (b.percentage !== a.percentage) return b.percentage - a.percentage;
+    if (a.wrongCount !== b.wrongCount) return a.wrongCount - b.wrongCount;
+    if (a.unansweredCount !== b.unansweredCount) return a.unansweredCount - b.unansweredCount;
+    return a.submittedAt - b.submittedAt;
+  });
+  
+  return entries;
+}
+
+function renderAdminResults() {
+  const test = appData.tests[adminResultsTestIndex];
+  if (!test) return;
+  const container = document.getElementById('adminResultsBody');
+  const entries = getAllOfficialResults(test);
+  
+  if (entries.length === 0) {
+    container.innerHTML = '<div style="text-align:center; padding:40px; color:#999;">📭 هنوز کسی در این آزمون شرکت نکرده است</div>';
+    return;
+  }
+  
+  const medals = ['🥇', '🥈', '🥉'];
+  
+  const rows = entries.map((entry, i) => `
+    <div class="leaderboard-row">
+      <div class="leaderboard-rank">${i + 1}</div>
+      <div class="leaderboard-name">
+        ${medals[i] || ''} ${entry.name}
+        <div class="leaderboard-id">@${entry.id} — نوبت ${entry.attemptNumber}</div>
+      </div>
+      <div class="leaderboard-percent">${entry.percentage.toFixed(2)}%</div>
+    </div>
+  `).join('');
+  
+  container.innerHTML = `
+    <div class="leaderboard" style="margin-top:0;">
+      <h3>🏆 نفرات برتر</h3>
+      ${rows}
+    </div>
+    <div style="margin-top:20px;font-size:13px;color:#777;text-align:center;">
+      تعداد شرکت‌کنندگان: ${entries.length}
+    </div>
+  `;
+}
+
+function downloadResultsPDF() {
+  const test = appData.tests[adminResultsTestIndex];
+  if (!test) return;
+  const entries = getAllOfficialResults(test);
+  
+  let html = `
+    <html dir="rtl" lang="fa">
+    <head>
+      <meta charset="UTF-8">
+      <title>نتایج آزمون: ${test.name}</title>
+      <style>
+        body { font-family: Tahoma, Arial, sans-serif; padding: 30px; }
+        h1 { text-align: center; color: #333; margin-bottom: 5px; }
+        h2 { text-align: center; color: #666; font-size: 14px; margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #667eea; color: white; padding: 10px; font-size: 13px; }
+        td { padding: 10px; border-bottom: 1px solid #e0e0e0; font-size: 13px; text-align: center; }
+        tr:nth-child(even) { background: #f8f9fa; }
+        .rank-1 { background: #fff3cd !important; }
+        .rank-2 { background: #e8e8e8 !important; }
+        .rank-3 { background: #fde8d0 !important; }
+      </style>
+    </head>
+    <body>
+      <h1>📊 نتایج آزمون: ${test.name}</h1>
+      <h2>تاریخ: ${new Date().toLocaleDateString('fa-IR')} — تعداد شرکت‌کنندگان: ${entries.length}</h2>
+      <table>
+        <tr>
+          <th>رتبه</th>
+          <th>نام</th>
+          <th>آیدی</th>
+          <th>درصد</th>
+          <th>درست</th>
+          <th>غلط</th>
+          <th>بی‌پاسخ</th>
+          <th>نوبت</th>
+        </tr>
+        ${entries.map((e, i) => `
+          <tr class="rank-${i + 1}">
+            <td>${i + 1}</td>
+            <td>${e.name}</td>
+            <td>@${e.id}</td>
+            <td>${e.percentage.toFixed(2)}%</td>
+            <td>${e.correctCount}</td>
+            <td>${e.wrongCount}</td>
+            <td>${e.unansweredCount}</td>
+            <td>${e.attemptNumber}</td>
+          </tr>
+        `).join('')}
+      </table>
+    </body>
+    </html>
+  `;
+  
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `نتایج_${test.name}.html`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  
+  alert('✅ فایل نتایج دانلود شد! برای تبدیل به PDF، فایل را در مرورگر باز کنید و Ctrl+P بزنید و «ذخیره به عنوان PDF» را انتخاب کنید.');
+}
+
+// ===== ویرایش آزمون =====
+function editTest(index) {
+  const test = appData.tests[index];
+  const status = getTestStatus(test);
+  if (status === 'active') {
+    alert('⛔ این آزمون فعال است! ابتدا آن را پایان دهید.');
+    return;
+  }
+  
+  editingTestIndex = index;
+  editingQuestions = JSON.parse(JSON.stringify(test.questions));
+  
+  document.getElementById('editTestName').value = test.name;
+  document.getElementById('editTestDuration').value = test.duration;
+  document.getElementById('editDaysAfter').value = test.daysAfter || '';
+  
+  const editChannelSelect = document.getElementById('editTestChannelSelect');
+  editChannelSelect.innerHTML = '<option value="">— انتخاب کنید —</option>' + appData.channels.map(ch => `
+    <option value="${ch.id}" ${test.channelId === ch.id ? 'selected' : ''}>${ch.name} (${ch.channelId})</option>
+  `).join('');
+  
+  if (test.startTime) {
+    const parts = test.startTime.split(':');
+    document.getElementById('editStartHour').value = parts[0];
+    document.getElementById('editStartMinute').value = parts[1];
+  } else {
+    const now = new Date();
+    const autoStart = new Date(now.getTime() + 5 * 60 * 1000);
+    document.getElementById('editStartHour').value = autoStart.getHours();
+    document.getElementById('editStartMinute').value = autoStart.getMinutes();
+  }
+  
+  if (test.endTime) {
+    const parts = test.endTime.split(':');
+    document.getElementById('editEndHour').value = parts[0];
+    document.getElementById('editEndMinute').value = parts[1];
+  } else {
+    document.getElementById('editEndHour').value = '';
+    document.getElementById('editEndMinute').value = '';
+  }
+  
+  document.getElementById('editTestPdf').value = '';
+  document.getElementById('editPdfFileName').textContent = test.pdf ? '📄 PDF فعلی موجود است' : 'هیچ PDF آپلود نشده';
+  
+  document.getElementById('editQuestionsContainer').innerHTML = '';
+  document.getElementById('editTestModal').classList.remove('hidden');
+}
+
+function closeEditTestModal() {
+  document.getElementById('editTestModal').classList.add('hidden');
+  editingTestIndex = null;
+  editingQuestions = [];
+}
+
+function openEditQuestionEditor() {
+  if (editingQuestions.length === 0) {
+    alert('ابتدا آزمون را باز کنید!');
+    return;
+  }
+  renderEditAnswerSheet();
+}
+
+function renderEditAnswerSheet() {
+  const container = document.getElementById('editQuestionsContainer');
+  let html = '<div class="answer-sheet">';
+  editingQuestions.forEach((q, i) => {
+    html += `
+      <div class="answer-sheet-row">
+        <span class="q-number">سوال ${i + 1}</span>
+        <div class="options">
+          ${q.options.map((opt, j) => {
+            const isSelected = q.correct === j;
+            return `<div class="circle-option ${isSelected ? 'selected' : ''}" onclick="markEditCorrect(${i}, ${j})">${j + 1}</div>`;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function markEditCorrect(qIndex, optIndex) {
+  editingQuestions[qIndex].correct = optIndex;
+  renderEditAnswerSheet();
+}
+
+function saveEditTest() {
+  if (editingTestIndex === null) return;
+  
+  const name = document.getElementById('editTestName').value.trim();
+  const duration = parseInt(document.getElementById('editTestDuration').value) || 30;
+  const daysAfter = parseInt(document.getElementById('editDaysAfter').value) || 0;
+  const startHour = document.getElementById('editStartHour').value;
+  const startMinute = document.getElementById('editStartMinute').value;
+  const endHour = document.getElementById('editEndHour').value;
+  const endMinute = document.getElementById('editEndMinute').value;
+  const channelId = document.getElementById('editTestChannelSelect').value;
+  
+  if (!name) { alert('نام آزمون را وارد کنید!'); return; }
+  
+  const emptyQuestions = editingQuestions.filter(q => q.correct === null);
+  if (emptyQuestions.length > 0) {
+    alert('⚠️ بعضی سوالات ناقص هستند!');
+    return;
+  }
+  
+  if (startHour === '' || startMinute === '') {
+    alert('⚠️ ساعت شروع اجباری است!');
+    return;
+  }
+  
+  const test = appData.tests[editingTestIndex];
+  test.name = name;
+  test.duration = duration;
+  test.questions = editingQuestions;
+  test.daysAfter = daysAfter;
+  test.channelId = channelId;
+  
+  test.startTime = `${String(startHour).padStart(2, '0')}:${String(startMinute).padStart(2, '0')}`;
+  
+  if (endHour !== '' && endMinute !== '') {
+    test.endTime = `${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`;
+  } else {
+    const startTotal = parseInt(startHour) * 60 + parseInt(startMinute);
+    const endTotal = (startTotal + duration + 5) % (24 * 60);
+    const autoEndHour = Math.floor(endTotal / 60);
+    const autoEndMinute = endTotal % 60;
+    test.endTime = `${String(autoEndHour).padStart(2, '0')}:${String(autoEndMinute).padStart(2, '0')}`;
+  }
+  
+  const pdfFile = document.getElementById('editTestPdf').files[0];
+  if (pdfFile) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      test.pdf = e.target.result;
+      finishEditTest();
+    };
+    reader.readAsDataURL(pdfFile);
+  } else {
+    finishEditTest();
+  }
+}
+
+function finishEditTest() {
+  saveData();
+  closeEditTestModal();
+  renderTests();
+  renderChannel();
+  renderGroup();
+  alert('✅ تغییرات با موفقیت ذخیره شد!');
+}
+
+// ===== تنظیمات =====
+function changeStudentPassword() {
+  const newPass = document.getElementById('newStudentPassword').value.trim();
+  const msgEl = document.getElementById('passwordChangeMsg');
+  if (!newPass) {
+    msgEl.innerHTML = '<div style="color:#f44336; font-size:13px; margin-top:10px;">رمز جدید را وارد کنید!</div>';
+    return;
+  }
+  appData.studentPassword = newPass;
+  saveData();
+  document.getElementById('currentStudentPassword').textContent = newPass;
+  document.getElementById('newStudentPassword').value = '';
+  msgEl.innerHTML = '<div style="color:#4CAF50; font-size:13px; margin-top:10px;">✅ رمز با موفقیت تغییر کرد</div>';
+}
+
+// ===== ساخت آزمون =====
+function openCreateTestModal() {
+  document.getElementById('createTestModal').classList.remove('hidden');
+  document.getElementById('testName').value = '';
+  document.getElementById('testQuestionCount').value = '10';
+  document.getElementById('testDuration').value = '30';
+  document.getElementById('testDaysAfter').value = '';
+  
+  const channelSelect = document.getElementById('testChannelSelect');
+  channelSelect.innerHTML = '<option value="">— انتخاب کنید —</option>' + appData.channels.map(ch => `
+    <option value="${ch.id}">${ch.name} (${ch.channelId})</option>
+  `).join('');
+  
+  const now = new Date();
+  const autoStart = new Date(now.getTime() + 5 * 60 * 1000);
+  document.getElementById('testStartHour').value = autoStart.getHours();
+  document.getElementById('testStartMinute').value = autoStart.getMinutes();
+  
+  document.getElementById('testEndHour').value = '';
+  document.getElementById('testEndMinute').value = '';
+  
+  document.getElementById('testPdf').value = '';
+  document.getElementById('questionsContainer').innerHTML = '';
+  currentTestQuestions = [];
+}
+
+function closeCreateTestModal() {
+  document.getElementById('createTestModal').classList.add('hidden');
+}
+
+function openQuestionEditor() {
+  const count = parseInt(document.getElementById('testQuestionCount').value) || 10;
+  currentTestQuestions = [];
+  for (let i = 0; i < count; i++) {
+    currentTestQuestions.push({ options: ['', '', '', ''], correct: null });
+  }
+  renderAnswerSheet();
+}
+
+function renderAnswerSheet() {
+  const container = document.getElementById('questionsContainer');
+  let html = '<div class="answer-sheet">';
+  currentTestQuestions.forEach((q, i) => {
+    html += `
+      <div class="answer-sheet-row">
+        <span class="q-number">سوال ${i + 1}</span>
+        <div class="options">
+          ${q.options.map((opt, j) => {
+            const isSelected = q.correct === j;
+            return `<div class="circle-option ${isSelected ? 'selected' : ''}" onclick="markCorrect(${i}, ${j})">${j + 1}</div>`;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function markCorrect(qIndex, optIndex) {
+  currentTestQuestions[qIndex].correct = optIndex;
+  renderAnswerSheet();
+}
+
+function saveTest() {
+  const name = document.getElementById('testName').value.trim();
+  const duration = parseInt(document.getElementById('testDuration').value) || 30;
+  const daysAfter = parseInt(document.getElementById('testDaysAfter').value) || 0;
+  const startHour = document.getElementById('testStartHour').value;
+  const startMinute = document.getElementById('testStartMinute').value;
+  const endHour = document.getElementById('testEndHour').value;
+  const endMinute = document.getElementById('testEndMinute').value;
+  const channelId = document.getElementById('testChannelSelect').value;
+  
+  if (!name) { alert('نام آزمون را وارد کنید!'); return; }
+  if (currentTestQuestions.length === 0) { alert('ابتدا کلید سوالات را وارد کنید!'); return; }
+  
+  const emptyQuestions = currentTestQuestions.filter(q => q.correct === null);
+  if (emptyQuestions.length > 0) { alert('⚠️ بعضی سوالات ناقص هستند!'); return; }
+  
+  if (startHour === '' || startMinute === '') {
+    alert('⚠️ ساعت شروع اجباری است!');
+    return;
+  }
+  
+  if (!channelId) {
+    alert('⚠️ لطفاً کانال/گروه مقصد را انتخاب کنید!');
+    return;
+  }
+  
+  let startTime = `${String(startHour).padStart(2, '0')}:${String(startMinute).padStart(2, '0')}`;
+  
+  let endTime;
+  if (endHour !== '' && endMinute !== '') {
+    endTime = `${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`;
+  } else {
+    const startTotal = parseInt(startHour) * 60 + parseInt(startMinute);
+    const endTotal = (startTotal + duration + 5) % (24 * 60);
+    const autoEndHour = Math.floor(endTotal / 60);
+    const autoEndMinute = endTotal % 60;
+    endTime = `${String(autoEndHour).padStart(2, '0')}:${String(autoEndMinute).padStart(2, '0')}`;
+  }
+  
+  const pdfFile = document.getElementById('testPdf').files[0];
+  if (pdfFile) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      createTest(name, duration, currentTestQuestions, e.target.result, startTime, endTime, daysAfter, channelId);
+    };
+    reader.readAsDataURL(pdfFile);
+  } else {
+    createTest(name, duration, currentTestQuestions, null, startTime, endTime, daysAfter, channelId);
+  }
+}
+
+function createTest(name, duration, questions, pdfData, startTime, endTime, daysAfter, channelId) {
+  const newTest = {
+    id: makeTestId(),
+    name, duration, questions, pdf: pdfData,
+    startTime, endTime, daysAfter: daysAfter || 0,
+    isActive: false,
+    isFinished: false,
+    channelId: channelId,
+    createdAt: new Date().toLocaleDateString('fa-IR')
+  };
+  
+  appData.tests.push(newTest);
+  saveData();
+  closeCreateTestModal();
+  renderTests();
+  
+  const channel = appData.channels.find(c => c.id === channelId);
+  if (channel) {
+    if (!channel.messages) channel.messages = [];
+    channel.messages.push({
+      type: 'test',
+      testId: newTest.id,
+      sender: 'مدیر',
+      time: new Date().toLocaleTimeString('fa-IR'),
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
+    });
+    saveData();
+  }
+  
+  renderChannel();
+  renderGroup();
+  
+  alert('✅ آزمون ساخته شد و در ' + getChannelTypeLabel(channel) + ' «' + (channel ? channel.name : '') + '» قرار گرفت!');
+}
+
+// ===== اجرای آزمون =====
+function getOfficialExamEndTimestamp(test) {
+  if (!test) return null;
+  if (test.manualEndedAt) return Number(test.manualEndedAt);
+  return getExamEndTimestamp(test);
+}
+
+function isExamWindowOpen(test) {
+  if (!test || test.isFinished) return false;
+  if (!test.startTime) return !!test.isActive;
+  const startTs = getExamStartTimestamp(test);
+  const endTs = getOfficialExamEndTimestamp(test);
+  const now = Date.now();
+  return now >= startTs && now < endTs;
+}
+
+function startTest(index, mode = 'official') {
+  try {
+    const test = appData.tests[index];
+    if (!test) {
+      alert('آزمون پیدا نشد!');
+      return;
+    }
+    if (!test.questions || test.questions.length === 0) {
+      alert('این آزمون سوالی ندارد!');
+      return;
+    }
+    
+    if (currentRole === 'student') {
+      const profile = currentStudentPhone ? appData.studentProfiles?.[currentStudentPhone] : null;
+      if (!profile || !profile.username || !profile.id) {
+        alert('⚠️ ابتدا باید پروفایل خود را تنظیم کنید!\nلطفاً به بخش «پروفایل من» بروید و نام کاربری و آیدی خود را وارد کنید.');
+        switchTab('profile');
+        return;
+      }
+    }
+    
+    const submissionKey = getSubmissionKey(test);
+    const savedSubmission = appData.submissions ? appData.submissions[submissionKey] : null;
+    const windowOpen = isExamWindowOpen(test);
+    
+    if (mode === 'official') {
+      if (savedSubmission?.officialCompleted && !savedSubmission?.resultPending) {
+        alert('⛔ شما قبلاً در آزمون رسمی شرکت کرده‌اید! می‌توانید از آزمون شبیه‌ساز استفاده کنید.');
+        return;
+      }
+      if (!windowOpen && !savedSubmission?.officialInProgress) {
+        alert('⛔ بازه زمانی آزمون رسمی تمام شده است! می‌توانید از آزمون شبیه‌ساز استفاده کنید.');
+        return;
+      }
+      if (windowOpen && savedSubmission?.officialCompleted) {
+        alert('⛔ شما قبلاً در آزمون رسمی شرکت کرده‌اید! می‌توانید از آزمون شبیه‌ساز استفاده کنید.');
+        return;
+      }
+    } else if (mode === 'practice') {
+      if (savedSubmission?.practiceCompleted) {
+        alert('⛔ شما قبلاً در آزمون شبیه‌ساز شرکت کرده‌اید!');
+        return;
+      }
+    }
+    
+    currentTestMode = mode;
+    
+    if (mode === 'official' && savedSubmission?.officialCompleted && savedSubmission?.resultPending && savedSubmission?.resultVisibleAt > Date.now()) {
+      showPendingResults(index, savedSubmission.resultVisibleAt, true);
+      return;
+    }
+    
+    if (mode === 'official' && savedSubmission?.officialCompleted && !savedSubmission?.resultPending) {
+      showResult(index, savedSubmission.officialResult);
+      return;
+    }
+    
+    currentTestIndex = index;
+    
+    const isResume = mode === 'official' ? savedSubmission?.officialInProgress === true : savedSubmission?.practiceInProgress === true;
+    
+    if (isResume) {
+      const prefix = mode === 'practice' ? 'practice' : 'official';
+      const answerKey = `${prefix}Answers`;
+      const questionKey = `${prefix}CurrentQuestionIndex`;
+      const attemptKey = `${prefix}CurrentAttempt`;
+      const startKey = `${prefix}StartTime`;
+      const durationKey = `${prefix}DurationEndTime`;
+      const effectiveKey = `${prefix}EffectiveEndTime`;
+      
+      currentQuestionIndex = savedSubmission[questionKey] || 0;
+      currentAttemptNumber = savedSubmission[attemptKey] || 1;
+      testAnswers = Array.isArray(savedSubmission[answerKey])
+        ? Array.from({length: test.questions.length}, (_, i) => savedSubmission[answerKey][i] ?? null)
+        : new Array(test.questions.length).fill(null);
+      
+      const savedStartTime = savedSubmission[startKey] || Date.now();
+      const durationEndTime = savedSubmission[durationKey] || (savedStartTime + test.duration * 60 * 1000);
+      const officialEndTime = mode === 'official' ? getOfficialExamEndTimestamp(test) : null;
+      const effectiveEndTime = mode === 'official' && officialEndTime
+        ? Math.min(durationEndTime, officialEndTime)
+        : durationEndTime;
+      
+      appData.submissions[submissionKey] = {
+        ...savedSubmission,
+        [answerKey]: [...testAnswers],
+        [questionKey]: currentQuestionIndex,
+        [attemptKey]: currentAttemptNumber,
+        [startKey]: savedStartTime,
+        [durationKey]: durationEndTime,
+        [effectiveKey]: effectiveEndTime,
+        officialInProgress: mode === 'official' ? true : (savedSubmission.officialInProgress || false),
+        practiceInProgress: mode === 'practice' ? true : (savedSubmission.practiceInProgress || false),
+        currentMode: mode
+      };
+      
+      testTimeLeft = Math.max(0, Math.ceil((effectiveEndTime - Date.now()) / 1000));
+      if (testTimeLeft <= 0) {
+        finalSubmit();
+        return;
+      }
+    } else {
+      currentQuestionIndex = 0;
+      currentAttemptNumber = 1;
+      testAnswers = new Array(test.questions.length).fill(null);
+      
+      const startTime = Date.now();
+      const durationEndTime = startTime + test.duration * 60 * 1000;
+      const officialEndTime = mode === 'official' ? getOfficialExamEndTimestamp(test) : null;
+      const effectiveEndTime = mode === 'official' && officialEndTime
+        ? Math.min(durationEndTime, officialEndTime)
+        : durationEndTime;
+      const prefix = mode === 'practice' ? 'practice' : 'official';
+      
+      appData.submissions[submissionKey] = {
+        ...(savedSubmission || {}),
+        [`${prefix}Answers`]: [...testAnswers],
+        [`${prefix}CurrentQuestionIndex`]: 0,
+        [`${prefix}CurrentAttempt`]: currentAttemptNumber,
+        [`${prefix}StartTime`]: startTime,
+        [`${prefix}DurationEndTime`]: durationEndTime,
+        [`${prefix}EffectiveEndTime`]: effectiveEndTime,
+        officialInProgress: mode === 'official' ? true : (savedSubmission?.officialInProgress || false),
+        practiceInProgress: mode === 'practice' ? true : (savedSubmission?.practiceInProgress || false),
+        currentMode: mode
+      };
+      
+      testTimeLeft = Math.max(0, Math.ceil((effectiveEndTime - Date.now()) / 1000));
+    }
+    
+    saveData();
+    
+    document.getElementById('mainScreen').classList.add('hidden');
+    document.getElementById('resultScreen').classList.add('hidden');
+    document.getElementById('resultsPendingScreen').classList.add('hidden');
+    document.getElementById('studentAnswerSheetScreen').classList.add('hidden');
+    document.getElementById('adminResultsScreen').classList.add('hidden');
+    document.getElementById('examInfoScreen').classList.add('hidden');
+    document.getElementById('examTimeExpiredScreen').classList.add('hidden');
+    document.getElementById('examScreen').classList.remove('hidden');
+    
+    const modeLabel = mode === 'practice' ? '🎯 شبیه‌ساز' : '📝 رسمی';
+    document.getElementById('examTitle').textContent = `${test.name} — ${modeLabel}`;
+    
+    if (testTimerInterval) clearInterval(testTimerInterval);
+    testTimerInterval = setInterval(updateTimer, 1000);
+    updateTimer();
+    
+    const examBody = document.getElementById('examBody');
+    examBody.innerHTML = `
+      <div id="examQuestionNav"></div>
+      ${test.pdf
+        ? `<embed id="examPdfViewer" class="pdf-viewer" src="${test.pdf}" type="application/pdf">`
+        : `<div style="padding:30px;text-align:center;color:#999;border:2px dashed #ddd;border-radius:10px;">📄 برای این آزمون PDF سوالات ثبت نشده است.</div>`}
+      <div style="text-align:center;color:#777;font-size:13px;margin-top:10px;">
+        📄 این PDF فقط یک بار نمایش داده می‌شود و تعداد صفحات آن مستقل از تعداد سوال‌هاست.
+      </div>
+      <div id="examControls" class="exam-actions"></div>
+    `;
+    
+    renderQuestion();
+  } catch (e) {
+    alert('خطا: ' + e.message);
+  }
+}
+
+function updateTimer() {
+  if (testTimeLeft <= 0) {
+    clearInterval(testTimerInterval);
+    
+    const test = appData.tests[currentTestIndex];
+    if (test && currentTestMode === 'official') {
+      const officialEndTime = getOfficialExamEndTimestamp(test);
+      const now = Date.now();
+      if (officialEndTime && now < officialEndTime) {
+        showExamTimeExpired(currentTestIndex, officialEndTime);
+        return;
+      }
+    }
+    
+    finalSubmit();
+    return;
+  }
+  testTimeLeft--;
+  const minutes = Math.floor(testTimeLeft / 60);
+  const seconds = testTimeLeft % 60;
+  const timerEl = document.getElementById('examTimer');
+  timerEl.textContent = `⏱️ ${minutes}:${seconds.toString().padStart(2, '0')}`;
+  if (testTimeLeft <= 300) {
+    timerEl.classList.add('warning');
+  }
+}
+
+function showExamTimeExpired(testIndex, endTime) {
+  clearInterval(examTimeExpiredInterval);
+  examTimeExpiredTestIndex = testIndex;
+  saveCurrentAnswers();
+  
+  document.getElementById('examScreen').classList.add('hidden');
+  document.getElementById('studentAnswerSheetScreen').classList.add('hidden');
+  document.getElementById('resultScreen').classList.add('hidden');
+  document.getElementById('mainScreen').classList.add('hidden');
+  document.getElementById('adminResultsScreen').classList.add('hidden');
+  document.getElementById('examInfoScreen').classList.add('hidden');
+  document.getElementById('resultsPendingScreen').classList.add('hidden');
+  document.getElementById('examTimeExpiredScreen').classList.remove('hidden');
+  
+  const countdownEl = document.getElementById('examTimeExpiredCountdown');
+  
+  const tick = () => {
+    const remaining = Math.max(0, endTime - Date.now());
+    if (remaining <= 0) {
+      clearInterval(examTimeExpiredInterval);
+      const test = appData.tests[testIndex];
+      const submission = appData.submissions?.[getSubmissionKey(test)];
+      if (submission?.officialResult) {
+        submission.officialCompleted = true;
+        submission.officialInProgress = false;
+        submission.resultPending = false;
+        submission.resultVisibleAt = Date.now();
+        saveData();
+        renderChannel();
+        renderGroup();
+        showResult(testIndex, submission.officialResult, false);
+      }
+      return;
+    }
+    countdownEl.innerHTML = buildCountdownBoxesUntilEnd(endTime);
+  };
+  
+  tick();
+  examTimeExpiredInterval = setInterval(tick, 1000);
+}
+
+function exitExamTimeExpired() {
+  clearInterval(examTimeExpiredInterval);
+  document.getElementById('examTimeExpiredScreen').classList.add('hidden');
+  document.getElementById('mainScreen').classList.remove('hidden');
+  renderTests();
+  renderChannel();
+  renderGroup();
+}
+
+function renderQuestion() {
+  const test = appData.tests[currentTestIndex];
+  const container = document.getElementById('examBody');
+  
+  let navHtml = '<div class="question-nav">';
+  test.questions.forEach((q, i) => {
+    const isActive = i === currentQuestionIndex;
+    const isAnswered = testAnswers[i] !== null;
+    navHtml += `<button class="q-nav-btn ${isActive ? 'active' : ''} ${isAnswered ? 'answered' : ''}" onclick="goToQuestion(${i})">${i + 1}</button>`;
+  });
+  navHtml += '</div>';
+  
+  const controls = document.getElementById('examControls');
+  if (controls) {
+    const isLast = currentQuestionIndex === test.questions.length - 1;
+    controls.innerHTML = `
+      ${currentQuestionIndex > 0 ? `<button class="btn-prev" onclick="prevQuestion()">→ قبلی</button>` : ''}
+      ${!isLast ? `<button class="btn-next" onclick="nextQuestion()">بعدی ←</button>` : ''}
+      <button class="btn-save-exit" onclick="saveAndExit()">💾 ذخیره و خروج</button>
+      <button class="btn-save-exit" style="background:#764ba2;" onclick="openStudentAnswerSheet()">📝 پاسخنامه یکجا</button>
+    `;
+  }
+  
+  const nav = document.getElementById('examQuestionNav');
+  if (nav) nav.innerHTML = navHtml;
+}
+
+function goToQuestion(index) {
+  currentQuestionIndex = index;
+  renderQuestion();
+}
+
+function selectOption(optionIndex) {
+  testAnswers[currentQuestionIndex] = optionIndex;
+  saveCurrentAnswers();
+  renderQuestion();
+}
+
+function nextQuestion() {
+  if (currentQuestionIndex < appData.tests[currentTestIndex].questions.length - 1) {
+    currentQuestionIndex++;
+    renderQuestion();
+  }
+}
+
+function prevQuestion() {
+  if (currentQuestionIndex > 0) {
+    currentQuestionIndex--;
+    renderQuestion();
+  }
+}
+
+function saveCurrentAnswers() {
+  if (currentTestIndex === null) return;
+  const test = appData.tests[currentTestIndex];
+  if (!test) return;
+  const submissionKey = getSubmissionKey(test);
+  const existing = appData.submissions ? appData.submissions[submissionKey] : {};
+  if (!appData.submissions) appData.submissions = {};
+  
+  const mode = currentTestMode === 'practice' ? 'practice' : 'official';
+  const prefix = mode === 'practice' ? 'practice' : 'official';
+  const startKey = `${prefix}StartTime`;
+  const durationKey = `${prefix}DurationEndTime`;
+  const effectiveKey = `${prefix}EffectiveEndTime`;
+  
+  const startTime = existing[startKey] || Date.now();
+  const durationEndTime = existing[durationKey] || (startTime + test.duration * 60 * 1000);
+  const officialEndTime = mode === 'official' ? getOfficialExamEndTimestamp(test) : null;
+  const effectiveEndTime = mode === 'official' && officialEndTime
+    ? Math.min(durationEndTime, officialEndTime)
+    : durationEndTime;
+  
+  appData.submissions[submissionKey] = {
+    ...existing,
+    [`${prefix}Answers`]: [...testAnswers],
+    [`${prefix}CurrentQuestionIndex`]: currentQuestionIndex,
+    [`${prefix}CurrentAttempt`]: currentAttemptNumber,
+    [`${prefix}StartTime`]: startTime,
+    [`${prefix}DurationEndTime`]: durationEndTime,
+    [`${prefix}EffectiveEndTime`]: effectiveEndTime,
+    officialInProgress: mode === 'official' ? true : (existing.officialInProgress || false),
+    practiceInProgress: mode === 'practice' ? true : (existing.practiceInProgress || false),
+    currentMode: mode
+  };
+  
+  saveData();
+}
+
+function saveAndExit() {
+  saveCurrentAnswers();
+  alert('✅ پاسخ‌های شما ذخیره شد. می‌توانید دوباره وارد آزمون شوید و ادامه دهید.');
+  clearInterval(testTimerInterval);
+  document.getElementById('examScreen').classList.add('hidden');
+  document.getElementById('mainScreen').classList.remove('hidden');
+  renderTests();
+}
+
+function finalSubmit() {
+  if (currentTestIndex === null) return;
+  const test = appData.tests[currentTestIndex];
+  if (!test) return;
+  const submissionKey = getSubmissionKey(test);
+  
+  let correctCount = 0;
+  let wrongCount = 0;
+  let unansweredCount = 0;
+  
+  const results = test.questions.map((q, i) => {
+    const userAnswer = testAnswers[i];
+    const isCorrect = userAnswer !== null && userAnswer === q.correct;
+    const isUnanswered = userAnswer === null;
+    if (isCorrect) correctCount++;
+    else if (isUnanswered) unansweredCount++;
+    else wrongCount++;
+    return {
+      question: q,
+      userAnswer: userAnswer,
+      isCorrect: isCorrect,
+      isUnanswered: isUnanswered
+    };
+  });
+  
+  const total = test.questions.length;
+  const rawScore = correctCount - (wrongCount / 3);
+  const score = Math.max(0, rawScore);
+  const percentage = Math.round((score / total) * 10000) / 100;
+  const passed = percentage >= 50;
+  
+  const existing = appData.submissions?.[submissionKey] || {};
+  const attemptNumber = existing.currentAttempt || currentAttemptNumber || 1;
+  const profile = currentStudentPhone ? appData.studentProfiles?.[currentStudentPhone] : null;
+  
+  const resultData = {
+    correctCount,
+    wrongCount,
+    unansweredCount,
+    score: Math.round(score * 100) / 100,
+    total,
+    percentage,
+    passed,
+    attemptNumber,
+    submittedAt: Date.now(),
+    results,
+    studentName: profile?.username || 'دانش‌آموز',
+    studentId: profile?.id || '—',
+    studentPhone: currentStudentPhone || '—'
+  };
+  
+  const officialEndTime = getOfficialExamEndTimestamp(test);
+  const isOfficialWindowStillOpen = officialEndTime && Date.now() < officialEndTime;
+  
+  if (currentTestMode === 'official') {
+    if (isOfficialWindowStillOpen) {
+      appData.submissions[submissionKey] = {
+        ...existing,
+        officialInProgress: true,
+        officialCompleted: false,
+        officialResult: resultData,
+        resultPending: true,
+        resultVisibleAt: officialEndTime,
+        attempts: (existing.attempts || 0) + 1
+      };
+      saveData();
+      renderChannel();
+      renderGroup();
+      clearInterval(testTimerInterval);
+      showPendingResults(currentTestIndex, officialEndTime, true);
+      return;
+    } else {
+      appData.submissions[submissionKey] = {
+        ...existing,
+        officialCompleted: true,
+        officialInProgress: false,
+        practiceInProgress: false,
+        officialResult: resultData,
+        resultPending: false,
+        resultVisibleAt: Date.now(),
+        attempts: (existing.attempts || 0) + 1
+      };
+      saveData();
+      renderChannel();
+      renderGroup();
+      clearInterval(testTimerInterval);
+      showResult(currentTestIndex, resultData, false);
+      return;
+    }
+  } else {
+    appData.submissions[submissionKey] = {
+      ...existing,
+      practiceCompleted: true,
+      practiceInProgress: false,
+      practiceResult: resultData
+    };
+    saveData();
+    renderChannel();
+    renderGroup();
+    clearInterval(testTimerInterval);
+    showResult(currentTestIndex, resultData, true);
+    return;
+  }
+}
+
+function showPendingResults(testIndex, endTime, canContinue = false) {
+  clearInterval(pendingResultTimer);
+  
+  document.getElementById('examScreen').classList.add('hidden');
+  document.getElementById('studentAnswerSheetScreen').classList.add('hidden');
+  document.getElementById('resultScreen').classList.add('hidden');
+  document.getElementById('mainScreen').classList.add('hidden');
+  document.getElementById('adminResultsScreen').classList.add('hidden');
+  document.getElementById('examInfoScreen').classList.add('hidden');
+  document.getElementById('examTimeExpiredScreen').classList.add('hidden');
+  document.getElementById('resultsPendingScreen').classList.remove('hidden');
+  
+  renderChannel();
+  renderGroup();
+  
+  const continueBtn = canContinue
+    ? `<button class="btn-primary" style="margin-top:20px; background:#ff9800;" onclick="continueOfficialTest(${testIndex})">▶️ ادامه آزمون</button>`
+    : '';
+  
+  const pendingBody = document.getElementById('pendingBody');
+  pendingBody.innerHTML = `
+    <div style="font-size:56px;margin-bottom:15px;">⏳</div>
+    <h3>پاسخ‌های شما ذخیره شد.</h3>
+    <p style="color:#777;line-height:2;">
+      چون زمان رسمی آزمون هنوز تمام نشده است،<br>
+      می‌توانید ادامه دهید یا منتظر پایان بازه بمانید.
+    </p>
+    <div id="pendingCountdown" style="font-size:22px;font-weight:bold;margin:20px 0;"></div>
+    <p style="font-size:13px;color:#999;">نتیجه پس از پایان رسمی آزمون قابل مشاهده خواهد بود.</p>
+    ${continueBtn}
+  `;
+  
+  const tick = () => {
+    const remaining = Math.max(0, endTime - Date.now());
+    const totalSeconds = Math.ceil(remaining / 1000);
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const sec = totalSeconds % 60;
+    const el = document.getElementById('pendingCountdown');
+    if (el) {
+      el.textContent = h > 0
+        ? `زمان باقی‌مانده: ${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`
+        : `زمان باقی‌مانده: ${m}:${String(sec).padStart(2,'0')}`;
+    }
+    if (remaining <= 0) {
+      clearInterval(pendingResultTimer);
+      const submission = appData.submissions?.[getSubmissionKey(appData.tests[testIndex])];
+      if (submission?.officialResult) {
+        submission.officialCompleted = true;
+        submission.officialInProgress = false;
+        submission.resultPending = false;
+        submission.resultVisibleAt = Date.now();
+        saveData();
+        renderChannel();
+        renderGroup();
+        showResult(testIndex, submission.officialResult, false);
+      }
+    }
+  };
+  
+  tick();
+  pendingResultTimer = setInterval(tick, 1000);
+}
+
+function continueOfficialTest(testIndex) {
+  clearInterval(pendingResultTimer);
+  document.getElementById('resultsPendingScreen').classList.add('hidden');
+  startTest(testIndex, 'official');
+}
+
+function exitPendingResults() {
+  clearInterval(pendingResultTimer);
+  document.getElementById('resultsPendingScreen').classList.add('hidden');
+  document.getElementById('mainScreen').classList.remove('hidden');
+  renderTests();
+  renderChannel();
+  renderGroup();
+}
+
+function showPracticeResult(testIndex) {
+  const test = appData.tests[testIndex];
+  const submission = appData.submissions?.[getSubmissionKey(test)];
+  if (!submission?.practiceResult) {
+    alert('هنوز نتیجه‌ای برای شبیه‌ساز ثبت نشده است!');
+    return;
+  }
+  showResult(testIndex, submission.practiceResult, true);
+}
+
+function getLeaderboard(testIndex) {
+  const test = appData.tests[testIndex];
+  if (!test) return [];
+  return getAllOfficialResults(test);
+}
+
+function renderLeaderboard(testIndex, includePracticeGhost = true) {
+  const entries = getLeaderboard(testIndex);
+  const test = appData.tests[testIndex];
+  const submission = test ? appData.submissions?.[getSubmissionKey(test)] : null;
+  const hasPractice = includePracticeGhost && !!submission?.practiceResult;
+  
+  if (entries.length === 0 && !hasPractice) return '';
+  
+  const medals = ['🥇', '🥈', '🥉'];
+  const rows = entries.map((entry, i) => `
+    <div class="leaderboard-row">
+      <div class="leaderboard-rank">${i + 1}</div>
+      <div class="leaderboard-name">
+        ${medals[i] || ''} ${entry.name}
+        <div class="leaderboard-id">@${entry.id}</div>
+      </div>
+      <div class="leaderboard-percent">${Number(entry.percentage || 0).toFixed(2)}%</div>
+    </div>
+  `).join('');
+  
+  const practiceRow = hasPractice ? `
+    <div class="leaderboard-row" style="opacity:.9;background:#f1f9f1;border:2px dashed #2eaf45;">
+      <div class="leaderboard-rank" style="background:#667eea;color:#fff;">${entries.length + 1}</div>
+      <div class="leaderboard-name">
+        🥈 شما 👻 (شبیه‌ساز)
+        <div class="leaderboard-id">@شبح</div>
+      </div>
+      <div class="leaderboard-percent">${Number(submission.practiceResult.percentage || 0).toFixed(2)}%</div>
+    </div>
+  ` : '';
+  
+  return `
+    <div class="leaderboard">
+      <h3>🏆 نفرات برتر</h3>
+      ${hasPractice ? '<p style="font-size:13px;color:#4caf50;margin:8px 0 12px;">👻 شما به صورت شبح در این رتبه‌بندی قرار گرفته‌اید و برای دیگران نمایش داده نمی‌شود.</p>' : ''}
+      ${rows}
+      ${practiceRow}
+    </div>
+  `;
+}
+
+function renderGhostPracticeResult(practiceResult) {
+  if (!practiceResult) return '';
+  return `
+    <div class="result-box" style="margin-top:18px;opacity:.72;border:2px dashed #999;background:#fafafa;">
+      <h3 style="color:#555;">👻 نتیجه شبیه‌ساز شما</h3>
+      <p style="font-size:13px;color:#888;">
+        این نتیجه فقط برای خود شما نمایش داده می‌شود و در نتایج رسمی و نمرات برتر حساب نمی‌شود.
+      </p>
+      <div class="result-stats" style="margin-top:12px;">
+        <div class="stat-box">
+          <div class="number" style="color:#667eea;">${practiceResult.correctCount || 0}</div>
+          <div class="label">درست</div>
+        </div>
+        <div class="stat-box">
+          <div class="number" style="color:#f44336;">${practiceResult.wrongCount || 0}</div>
+          <div class="label">غلط</div>
+        </div>
+        <div class="stat-box">
+          <div class="number" style="color:#999;">${practiceResult.unansweredCount || 0}</div>
+          <div class="label">بی‌پاسخ</div>
+        </div>
+        <div class="stat-box">
+          <div class="number" style="color:#667eea;">${Number(practiceResult.percentage || 0).toFixed(2)}%</div>
+          <div class="label">درصد شبیه‌ساز</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function showResult(testIndex, resultData, isPractice = false) {
+  if (!resultData) return;
+  currentTestIndex = testIndex;
+  
+  const submission = appData.submissions?.[getSubmissionKey(appData.tests[testIndex])];
+  const displayResult = (isPractice && submission?.officialResult)
+    ? submission.officialResult
+    : resultData;
+  
+  currentResultData = displayResult;
+  
+  document.getElementById('examScreen').classList.add('hidden');
+  document.getElementById('studentAnswerSheetScreen').classList.add('hidden');
+  document.getElementById('mainScreen').classList.add('hidden');
+  document.getElementById('adminResultsScreen').classList.add('hidden');
+  document.getElementById('examInfoScreen').classList.add('hidden');
+  document.getElementById('examTimeExpiredScreen').classList.add('hidden');
+  document.getElementById('resultScreen').classList.remove('hidden');
+  
+  renderChannel();
+  renderGroup();
+  
+  const practiceBadge = isPractice
+    ? '<div class="practice-badge">👻 این نتیجه شبیه‌ساز است و فقط برای خود شما نمایش داده می‌شود؛ در نتایج رسمی حساب نمی‌شود.</div>'
+    : '';
+  
+  const leaderboardHtml = renderLeaderboard(testIndex, isPractice);
+  const privatePracticeResult = submission?.practiceResult || null;
+  const ghostPracticeHtml = (isPractice && privatePracticeResult)
+    ? renderGhostPracticeResult(privatePracticeResult)
+    : '';
+  
+  const topResultHtml = (isPractice && privatePracticeResult)
+    ? ghostPracticeHtml
+    : `
+      <div class="result-box ${displayResult.passed ? 'result-pass' : 'result-fail'}">
+        <h3>${displayResult.passed ? '🎉 قبول شدی!' : '😔 قبول نشدی'}</h3>
+        <p>نمره با نمره منفی: ${displayResult.score} از ${displayResult.total}</p>
+        <p>درصد: <strong>${displayResult.percentage.toFixed(2)}%</strong></p>
+        <p style="font-size:12px;color:#777;">هر پاسخ غلط: ⅓− نمره — بدون پاسخ: ۰</p>
+        <div class="attempt-badge">نوبت ${displayResult.attemptNumber}</div>
+        ${practiceBadge}
+      </div>
+    `;
+  
+  document.getElementById('resultBody').innerHTML = `
+    ${topResultHtml}
+    ${isPractice ? '' : `
+    <div class="result-stats">
+      <div class="stat-box">
+        <div class="number" style="color:#4CAF50;">${displayResult.correctCount}</div>
+        <div class="label">درست</div>
+      </div>
+      <div class="stat-box">
+        <div class="number" style="color:#f44336;">${displayResult.wrongCount}</div>
+        <div class="label">غلط</div>
+      </div>
+      <div class="stat-box">
+        <div class="number" style="color:#999;">${displayResult.unansweredCount || 0}</div>
+        <div class="label">بی‌پاسخ</div>
+      </div>
+      <div class="stat-box">
+        <div class="number" style="color:#667eea;">${displayResult.percentage.toFixed(2)}%</div>
+        <div class="label">درصد</div>
+      </div>
+    </div>
+    `}
+    ${leaderboardHtml}
+    <div class="result-detail">
+      <h3 style="margin-bottom:12px;">📋 بررسی پاسخ‌ها</h3>
+      ${displayResult.results.map((r, i) => {
+        const correctIndex = r.question.correct;
+        const correctText = r.question.options?.[correctIndex] || 'گزینه ' + (correctIndex + 1);
+        const userText = r.userAnswer === null
+          ? 'بدون پاسخ'
+          : String.fromCharCode(65 + r.userAnswer) + '. ' + (r.question.options?.[r.userAnswer] || 'گزینه ' + (r.userAnswer + 1));
+        return `
+          <div class="result-item">
+            <div class="q-text"><strong>سوال ${i + 1}</strong> — پاسخ شما: ${userText}</div>
+            <div class="q-answer">
+              ${r.isCorrect
+                ? `<span class="correct-text">✅ درست</span>`
+                : `<span class="wrong-text">❌ غلط</span> — پاسخ صحیح: ${String.fromCharCode(65 + correctIndex)}. ${correctText}`}
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function openStudentAnswerSheet() {
+  if (currentTestIndex === null) return;
+  clearInterval(testTimerInterval);
+  saveCurrentAnswers();
+  document.getElementById('examScreen').classList.add('hidden');
+  document.getElementById('studentAnswerSheetScreen').classList.remove('hidden');
+  renderStudentAnswerSheet();
+  updateSheetTimer();
+}
+
+function updateSheetTimer() {
+  const timerEl = document.getElementById('sheetTimer');
+  if (!timerEl) return;
+  const minutes = Math.floor(testTimeLeft / 60);
+  const seconds = testTimeLeft % 60;
+  timerEl.textContent = `⏱️ ${minutes}:${seconds.toString().padStart(2, '0')}`;
+  timerEl.classList.toggle('warning', testTimeLeft <= 300);
+}
+
+function renderStudentAnswerSheet() {
+  const test = appData.tests[currentTestIndex];
+  const container = document.getElementById('studentAnswerSheetBody');
+  
+  container.innerHTML = test.questions.map((q, i) => {
+    const options = [0, 1, 2, 3].map(optIndex => {
+      const selected = testAnswers[i] === optIndex;
+      return `
+        <button
+          type="button"
+          class="student-answer-option ${selected ? 'selected' : ''}"
+          onclick="selectSheetAnswer(${i}, ${optIndex})">
+          ${String.fromCharCode(65 + optIndex)}
+        </button>
+      `;
+    }).join('');
+    
+    return `
+      <div class="student-answer-row">
+        <span class="q-number">سوال ${i + 1}</span>
+        <div class="student-answer-options">${options}</div>
+        <span style="font-size:12px;color:${testAnswers[i] === null ? '#f44336' : '#4CAF50'};">
+          ${testAnswers[i] === null ? 'بی‌پاسخ' : 'انتخاب شد'}
+        </span>
+      </div>
+    `;
+  }).join('');
+}
+
+function selectSheetAnswer(questionIndex, optionIndex) {
+  testAnswers[questionIndex] = optionIndex;
+  saveCurrentAnswers();
+  renderStudentAnswerSheet();
+}
+
+function backToExamFromSheet() {
+  document.getElementById('studentAnswerSheetScreen').classList.add('hidden');
+  document.getElementById('examScreen').classList.remove('hidden');
+  if (testTimerInterval) clearInterval(testTimerInterval);
+  testTimerInterval = setInterval(updateTimer, 1000);
+  renderQuestion();
+}
+
+function submitFromAnswerSheet() {
+  const unanswered = testAnswers.filter(a => a === null).length;
+  if (unanswered > 0) {
+    if (!confirm(`⚠️ ${unanswered} سوال بدون پاسخ است. آیا می‌خواهید آزمون را همین حالا ثبت نهایی کنید؟`)) {
+      return;
+    }
+  } else {
+    if (!confirm('آیا از ثبت نهایی پاسخ‌ها مطمئن هستید؟ بعد از ثبت، این نوبت تمام می‌شود.')) {
+      return;
+    }
+  }
+  clearInterval(testTimerInterval);
+  finalSubmit();
+}
+
+function exitExam() {
+  saveCurrentAnswers();
+  clearInterval(testTimerInterval);
+  document.getElementById('examScreen').classList.add('hidden');
+  document.getElementById('mainScreen').classList.remove('hidden');
+  renderTests();
+}
+
+function exitResult() {
+  clearInterval(testTimerInterval);
+  document.getElementById('resultScreen').classList.add('hidden');
+  document.getElementById('mainScreen').classList.remove('hidden');
+  renderTests();
+  renderChannel();
+  renderGroup();
+}
+
+// ===== راه‌اندازی =====
+loadData();
+migrateTestIds();
+
+const savedRole = localStorage.getItem('examRole');
+if (savedRole === 'admin' || savedRole === 'student') {
+  const savedPhone = localStorage.getItem('examStudentPhone');
+  if (savedRole === 'student' && savedPhone) {
+    currentStudentPhone = savedPhone;
+  }
+  enterApp(savedRole);
+}
+</script>
+
+</body>
+</html>
